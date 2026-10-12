@@ -1,0 +1,15 @@
+# gitleaks configuration: the default rules plus allowlists for known, harmless test fixtures.
+# Used by the open-source export gate (gitleaks auto-loads this file from the scanned
+# directory) and by anyone running `gitleaks dir .` locally. Keep each entry narrow:
+# allow the exact fixture value, never a whole file or rule.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Mock PEM used by App Store Connect client tests"
+regexes = ['''-----BEGIN PRIVATE KEY-----\\nmock\\n-----END PRIVATE KEY-----''']
+
+[[allowlists]]
+description = "localStorage cache key, not a secret"
+regexes = ['''^asc\.trial-banner\.v1$''']

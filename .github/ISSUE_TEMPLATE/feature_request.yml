@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a new feature or an improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the job you are trying to get done, for example "I want my agent to update promotional text in every locale".
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What do you do today instead?
+      description: Workarounds, other tools (fastlane, asc, the store consoles) or manual steps.
+  - type: dropdown
+    id: store
+    attributes:
+      label: Which store?
+      options:
+        - App Store Connect
+        - Google Play
+        - Both
+        - Not store-specific
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contributing
+      options:
+        - label: I would like to work on this myself (please agree the approach in this issue first).

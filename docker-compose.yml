@@ -1,0 +1,48 @@
+# App Listing Agent: self-hosted.
+#
+#   cp .env.example .env      # fill it in (see docs/self-hosting.md)
+#   docker compose up -d --build
+#   open http://localhost:3000
+#
+# Self-hosting uses your own Firebase project for Authentication and Firestore.
+# Build-time values (fixed in the image): NEXT_PUBLIC_APP_URL, NEXT_PUBLIC_SELF_HOSTED,
+# the other NEXT_PUBLIC_* values and R2_PUBLIC_URL. SELF_HOSTED=true is the runtime switch.
+# Compose reads .env twice: for the build args below (NEXT_PUBLIC_* values inlined into the
+# browser bundle, plus R2_PUBLIC_URL for the CSP) and, via env_file, for the server's
+# runtime configuration. Rebuild (--build) after changing any build arg.
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
+        NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
+        NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID:-}
+        NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:-}
+        NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:-}
+        NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID:-}
+        NEXT_PUBLIC_GLEAP_SDK_TOKEN: ${NEXT_PUBLIC_GLEAP_SDK_TOKEN:-}
+        NEXT_PUBLIC_CLARITY_ID: ${NEXT_PUBLIC_CLARITY_ID:-}
+        NEXT_PUBLIC_WAITLIST_MODE: ${NEXT_PUBLIC_WAITLIST_MODE:-false}
+        NEXT_PUBLIC_BILLING_CHECKOUT_ENABLED: ${NEXT_PUBLIC_BILLING_CHECKOUT_ENABLED:-false}
+        NEXT_PUBLIC_SELF_HOSTED: ${NEXT_PUBLIC_SELF_HOSTED:-true}
+        SELF_HOSTED: ${SELF_HOSTED:-true}
+        # The Content-Security-Policy is fixed at build time, so the bucket URL is needed here too.
+        R2_PUBLIC_URL: ${R2_PUBLIC_URL:-}
+    image: app-listing-agent:local
+    env_file:
+      - .env
+    environment:
+      SELF_HOSTED: ${SELF_HOSTED:-true}
+      PORT: "3000"
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3

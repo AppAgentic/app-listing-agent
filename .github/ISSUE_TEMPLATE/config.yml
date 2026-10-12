@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/AppAgentic/app-listing-agent/security/advisories/new
+    about: Please report security problems privately, or email security@appagentic.dev.
+  - name: Cloud (applistingagent.com) account or billing help
+    url: https://applistingagent.com/contact
+    about: Questions about the hosted cloud version, your subscription or your account.

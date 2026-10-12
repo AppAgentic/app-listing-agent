@@ -1,0 +1,192 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Check if user owns this document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Helper: Check if user is org member
+    function isOrgMember(orgId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    // Helper: Get org member role
+    function getOrgRole(orgId) {
+      return get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.role;
+    }
+
+    // Helper: Check if user has specific permission in org
+    function hasOrgPermission(orgId, permission) {
+      return isOrgMember(orgId) &&
+        get(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid)).data.permissions[permission] == true;
+    }
+
+    // Helper: Check if user is org owner or admin
+    function isOrgAdminOrOwner(orgId) {
+      return isOrgMember(orgId) &&
+        (getOrgRole(orgId) == 'owner' || getOrgRole(orgId) == 'admin');
+    }
+
+    // Billing and entitlement fields are server-owned. A signed-in user must
+    // never be able to grant themselves a plan, subscription, trial, or larger limits.
+    function userBillingFieldsUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'plan',
+        'planLimits',
+        'billing',
+        'stripeCustomers',
+        'billingTrial',
+        'subscriptionStatus',
+        'apiKey',
+        'organizationId'
+      ]);
+    }
+
+    function orgBillingFieldsUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'plan',
+        'planLimits',
+        'billing',
+        'stripeCustomers',
+        'billingTrial',
+        'subscriptionStatus',
+        'apiKey',
+        'ownerId'
+      ]);
+    }
+
+    // Users collection - personal data
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if false; // Session API creates users with Admin SDK.
+      allow update: if isOwner(userId) && userBillingFieldsUnchanged();
+      allow delete: if false; // Users can't delete themselves
+
+      // Personal projects
+      match /projects/{projectId} {
+        allow read: if isOwner(userId);
+        allow create: if false; // Project API enforces plan limits atomically.
+        allow update, delete: if isOwner(userId);
+
+        // Project credentials
+        match /credentials/{store} {
+          allow read, write: if isOwner(userId);
+        }
+
+        // Project translations
+        match /translations/{translationId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      // Usage tracking - read only for users, server writes
+      match /usage/{month} {
+        allow read: if isOwner(userId);
+        allow write: if false; // Only server can write
+      }
+
+      match /usageEvents/{eventId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+
+    // Organizations collection - team/enterprise
+    match /organizations/{orgId} {
+      // Only members can read org details
+      allow read: if isOrgMember(orgId);
+
+      // Only owner can update org settings
+      allow update: if isAuthenticated() && getOrgRole(orgId) == 'owner' && orgBillingFieldsUnchanged();
+
+      // Create/delete only via server
+      allow create, delete: if false;
+
+      // Organization members
+      match /members/{memberId} {
+        allow read: if isOrgMember(orgId);
+        allow create, update, delete: if isOrgAdminOrOwner(orgId);
+      }
+
+      // Pending invites
+      match /invites/{inviteId} {
+        allow read: if isOrgMember(orgId);
+        allow create: if hasOrgPermission(orgId, 'canInviteMembers');
+        allow update, delete: if isOrgAdminOrOwner(orgId);
+      }
+
+      // Organization projects
+      match /projects/{projectId} {
+        allow read: if isOrgMember(orgId);
+        allow create: if hasOrgPermission(orgId, 'canCreateProjects');
+        allow update: if hasOrgPermission(orgId, 'canCreateProjects');
+        allow delete: if hasOrgPermission(orgId, 'canDeleteProjects');
+
+        // Project credentials - restricted
+        match /credentials/{store} {
+          allow read, write: if hasOrgPermission(orgId, 'canManageCredentials');
+        }
+
+        // Project translations
+        match /translations/{translationId} {
+          allow read: if isOrgMember(orgId);
+          allow write: if hasOrgPermission(orgId, 'canCreateProjects');
+        }
+      }
+
+      // Organization usage - read only
+      match /usage/{month} {
+        allow read: if isOrgMember(orgId);
+        allow write: if false; // Only server
+      }
+
+      match /usageEvents/{eventId} {
+        allow read: if isOrgMember(orgId);
+        allow write: if false;
+      }
+
+      match /billingEvents/{eventId} {
+        allow read: if isOrgAdminOrOwner(orgId);
+        allow write: if false;
+      }
+
+      // Audit log - admins+ can read, only server writes
+      match /auditLog/{logId} {
+        allow read: if hasOrgPermission(orgId, 'canViewAuditLog');
+        allow write: if false; // Only server
+      }
+    }
+
+    match /billingEvents/{eventId} {
+      allow read, write: if false;
+    }
+
+    // Stripe webhook inbox, customer bindings and checkout leases: server only.
+    match /stripeWebhookInbox/{eventId} {
+      allow read, write: if false;
+    }
+
+    match /billingCustomers/{customerId} {
+      allow read, write: if false;
+    }
+
+    match /billingCheckouts/{accountId} {
+      allow read, write: if false;
+    }
+
+    // Admin stats - enterprise only
+    match /admin/{document} {
+      allow read: if isAuthenticated() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.plan == 'enterprise';
+      allow write: if false; // Only Cloud Functions
+    }
+  }
+}

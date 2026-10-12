@@ -1,0 +1,72 @@
+name: Bug report
+description: Something in App Listing Agent does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. **Security problems go to security@appagentic.dev, not here** (see SECURITY.md).
+        Never paste API keys, `.p8` files, service-account JSON or other credentials into an issue.
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Where are you running it?
+      options:
+        - Self-hosted (Docker)
+        - Self-hosted (Node / other)
+        - Cloud (applistingagent.com)
+        - Local development (npm run dev)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: The release tag or the commit SHA you are running.
+      placeholder: e.g. v1.0.0 or 1a2b3c4
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - Metadata / translations
+        - Screenshots
+        - Icons
+        - In-app purchases / subscriptions
+        - Custom product pages / custom store listings
+        - Store readiness audit
+        - MCP / agent connection
+        - App Store Connect connection
+        - Google Play connection
+        - Dashboard UI
+        - Self-hosting / Docker
+        - Other
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error messages
+      description: Server logs, browser console output or the MCP tool response. Remove any secrets first.
+      render: shell
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser, Node/Docker version, and the AI agent you used (if any).

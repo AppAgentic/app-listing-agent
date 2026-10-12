@@ -1,0 +1,13 @@
+import { build } from 'esbuild'
+import { execFileSync } from 'node:child_process'
+import { createServer } from 'node:http'
+import { readFileSync, mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+const root = process.cwd()
+const out = resolve(root, 'node_modules/.cache/billing-review')
+mkdirSync(out, { recursive: true })
+await build({ entryPoints: ['scripts/billing-review/entry.tsx'], bundle: true, outfile: `${out}/app.js`, jsx: 'automatic', alias: { 'next/navigation': resolve(root, 'scripts/billing-review/navigation.ts'), '@': root }, define: {'process.env.NEXT_PUBLIC_BILLING_CHECKOUT_ENABLED': '"true"', 'process.env.NODE_ENV': '"development"'} })
+execFileSync(resolve(root, 'node_modules/.bin/tailwindcss'), ['-i', 'app/globals.css', '-o', `${out}/app.css`, '--content', './components/billing/**/*.tsx'], {stdio:'inherit'})
+const html = `<!doctype html><html class="dark"><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Billing review · local fixtures</title><link rel="stylesheet" href="/app.css"><style>body{margin:0;background:#0a0a0a;font-family:Arial,sans-serif}.fixture-sidebar{position:fixed;top:0;bottom:0;width:240px;border-right:1px solid #262626;padding:32px 24px;color:#d4d4d4}.fixture-sidebar>b{color:white}.fixture-sidebar>p{font-size:12px;color:#737373;margin:24px 0}.fixture-sidebar nav{line-height:3;font-size:14px}.fixture-sidebar strong{color:#c4b5fd}.fixture-main{margin-left:240px}.fixture-main main{padding:32px}.fixture-label{padding:12px 32px;border-bottom:1px solid #262626;color:#a3a3a3;font-size:11px;letter-spacing:.06em}@media(max-width:767px){.fixture-sidebar{display:none}.fixture-main{margin-left:0}.fixture-main main{padding:24px 16px}.fixture-label{padding:12px 16px}}</style></head><body><div id="root"></div><script src="/app.js"></script></body></html>`
+const server = createServer((req,res) => {res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'none'; img-src 'self' data:; font-src 'self'; form-action 'none'; frame-src 'none'"); if(req.method!=='GET'){res.writeHead(405);return res.end('Fixture server: writes disabled')}const file = req.url?.split('?')[0];if(file==='/app.js'||file==='/app.css'){res.setHeader('Content-Type',file.endsWith('.js')?'text/javascript':'text/css');return res.end(readFileSync(out+file))}if(file?.startsWith('/api/')){res.writeHead(404);return res.end('No provider proxy')}res.setHeader('Content-Type','text/html');res.end(html)})
+server.listen(3137,'127.0.0.1',()=>console.log('Isolated billing review at http://127.0.0.1:3137/billing?scenario=free&plan=pro&interval=annual'))

@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[fadeUp"] { animation: none !important; }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --surface: 240 4.8% 95.9%;
+    --surface-foreground: 240 5.9% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 263.4 70% 50.4%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 98%;
+    --surface: 0 0% 3%;
+    --surface-foreground: 0 0% 98%;
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 263.4 70% 50.4%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    @apply antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/[0.02] backdrop-blur-xl border border-white/[0.08];
+  }
+
+  .glass-card {
+    @apply bg-card border border-border rounded-3xl overflow-hidden;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60;
+  }
+
+  .aura-purple {
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+  }
+
+  .aura-blue {
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  }
+}
+
+/* Custom animations - Toned Down */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s ease-out forwards;
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s ease-out forwards;
+}
+
+/* fade-up without the opacity step, for the homepage LCP paragraph: text that
+   starts at opacity 0 holds back Largest Contentful Paint. */
+@keyframes rise {
+  from { transform: translateY(20px); }
+  to { transform: translateY(0); }
+}
+
+.animate-rise {
+  animation: rise 0.8s ease-out both;
+}
+
+@keyframes scroll-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-scroll-left {
+  animation: scroll-left 40s linear infinite; /* Slower scroll */
+}
+
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* Dark scrollbar styling */
+.scrollbar-dark {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.scrollbar-dark::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* AI Translation Glow Effect - Toned Down */
+@keyframes ai-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.1), inset 0 0 15px rgba(139, 92, 246, 0.02);
+    border-color: rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.2), inset 0 0 20px rgba(139, 92, 246, 0.05);
+    border-color: rgba(139, 92, 246, 0.5);
+  }
+}
+
+@keyframes ai-liquid-flow {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes ai-text-fade-in {
+  0% { opacity: 0; transform: translateY(4px); filter: blur(4px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.ai-translating {
+  animation: ai-glow-pulse 3s ease-in-out infinite; /* Slower */
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-translating::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: ai-liquid-flow 3s linear infinite; /* Slower */
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.ai-translated {
+  animation: ai-text-fade-in 0.6s ease-out forwards;
+}
+
+/* AI Decoding Text Effect - Toned Down */
+@keyframes ai-decode-glow {
+  0%, 100% { text-shadow: 0 0 4px rgba(139, 92, 246, 0.4); }
+  50% { text-shadow: 0 0 8px rgba(168, 85, 247, 0.6); }
+}
+
+@keyframes ai-decode-border-pulse {
+  0%, 100% { border-color: rgba(139, 92, 246, 0.3); }
+  50% { border-color: rgba(168, 85, 247, 0.5); }
+}
+
+.ai-decoding-field {
+  position: relative;
+  animation: ai-decode-border-pulse 2s ease-in-out infinite;
+  background: rgba(139, 92, 246, 0.02);
+  color: rgba(168, 85, 247, 0.9);
+  font-family: 'SF Mono', 'Fira Code', 'Monaco', 'Inconsolata', monospace;
+  letter-spacing: 0.5px;
+}
+
+.ai-decoding-text {
+  animation: ai-decode-glow 1s ease-in-out infinite;
+}
+
+/* AI Scrambling Field Effect - Toned Down */
+@keyframes ai-scramble-pulse {
+  0%, 100% { border-color: rgba(59, 130, 246, 0.3); }
+  50% { border-color: rgba(139, 92, 246, 0.5); }
+}
+
+.ai-scrambling-field {
+  position: relative;
+  animation: ai-scramble-pulse 2s ease-in-out infinite;
+  background: rgba(59, 130, 246, 0.03);
+  color: rgba(147, 197, 253, 0.8);
+  font-family: 'SF Mono', 'Fira Code', 'Monaco', 'Inconsolata', monospace;
+  letter-spacing: 1px;
+}
+
+/* Shimmer animation for progress bars */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}

@@ -1,0 +1,37 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getSession } from '@/lib/auth/session'
+import { getProjectContext } from '@/lib/org/context'
+import { getWhopProjectHelper } from '@/lib/services/whop-project'
+
+export async function GET(request: NextRequest) {
+  const session = await getSession()
+  if (!session) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const projectId = searchParams.get('projectId')
+  if (!projectId) {
+    return NextResponse.json({ error: 'projectId is required' }, { status: 400 })
+  }
+
+  const projectContext = await getProjectContext(session.userId, projectId)
+  if (!projectContext) {
+    return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+  }
+
+  const helper = await getWhopProjectHelper(session.userId, projectId, projectContext.orgId)
+  if (!helper) {
+    return NextResponse.json({ error: 'Whop not configured for this project' }, { status: 400 })
+  }
+
+  try {
+    const overview = await helper.getOverview()
+    return NextResponse.json(overview)
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch Whop overview' },
+      { status: 500 }
+    )
+  }
+}

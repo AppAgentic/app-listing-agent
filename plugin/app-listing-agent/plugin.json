@@ -1,0 +1,105 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "app-listing-agent",
+  "version": "1.0.2",
+  "description": "Prepare App Store and Google Play listings: launch-readiness checks, listing text and translations, screenshots, icons and custom pages, with approval before any store change.",
+  "author": {
+    "name": "App Agentic Ltd",
+    "email": "support@applistingagent.com",
+    "url": "https://applistingagent.com"
+  },
+  "homepage": "https://applistingagent.com",
+  "keywords": [
+    "app store",
+    "google play",
+    "store listing",
+    "localization",
+    "screenshots"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "App Listing Agent",
+        "shortDescription": "Prepare your store listing",
+        "longDescription": "Prepare App Store and Google Play listings in ChatGPT. Check what is blocking an app's launch, then edit and translate its name, subtitle, description and keywords. Create, translate and edit marketing screenshots and icons, and draft custom product pages and custom store listings. Changes are saved as drafts in your App Listing Agent workspace. A change reaches App Store Connect or Google Play only after you approve that exact change. App Listing Agent does not upload app builds or submit apps for store review.",
+        "developerName": "App Agentic Ltd",
+        "category": "Developer Tools",
+        "capabilities": [
+          "Check launch readiness",
+          "Edit and translate listing text",
+          "Create and edit screenshots and icons",
+          "Draft custom product pages and store listings"
+        ],
+        "websiteURL": "https://applistingagent.com",
+        "supportURL": "https://applistingagent.com/contact",
+        "privacyPolicyURL": "https://applistingagent.com/privacy",
+        "termsOfServiceURL": "https://applistingagent.com/terms",
+        "defaultPrompt": [
+          "Show my selected app's launch readiness and the most important blocker.",
+          "Review my English App Store metadata and draft a clearer subtitle without publishing.",
+          "Prepare a French listing draft for my selected app and show what needs review."
+        ],
+        "brandColor": "#7C3AED",
+        "composerIcon": "./assets/composer-icon.png",
+        "logo": "./assets/logo.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Launch readiness report",
+              "prompt": "Show Atlas Habit's launch readiness.",
+              "tools_triggered": "get_onboarding_status, run_store_readiness_audit, show_readiness_report",
+              "expected_behavior": "An interactive readiness report for Atlas Habit. It shows that the App Store record has not been created yet and that draft work can continue. Nothing is published."
+            },
+            {
+              "description": "Save a new English subtitle",
+              "prompt": "Change Atlas Habit's English App Store subtitle to \"Small habits, steady progress\" and show me the saved listing.",
+              "tools_triggered": "update_metadata, read_metadata",
+              "expected_behavior": "The saved English listing shows the subtitle \"Small habits, steady progress\". The name, description and keywords are unchanged. The change is saved as a draft and nothing is sent to the App Store."
+            },
+            {
+              "description": "Translate and save a French draft",
+              "prompt": "Translate Atlas Habit's English app name and subtitle into French and save them as the French draft.",
+              "tools_triggered": "read_metadata, translate_metadata, read_metadata",
+              "expected_behavior": "A French app name and subtitle, each 30 characters or fewer, shown as saved in Atlas Habit's French draft. Nothing is published to the App Store."
+            },
+            {
+              "description": "Show saved screenshots",
+              "prompt": "Show Atlas Habit's saved screenshots.",
+              "tools_triggered": "get_screenshots",
+              "expected_behavior": "A gallery showing Atlas Habit's saved iPhone marketing screenshot. No new images are generated."
+            },
+            {
+              "description": "What is missing before publishing",
+              "prompt": "What does Atlas Habit still need before its listing can be published to the App Store?",
+              "tools_triggered": "run_store_readiness_audit",
+              "expected_behavior": "Explains that Atlas Habit is not ready to publish because its App Store Connect record has not been created yet, and that draft work can continue meanwhile. Nothing is uploaded or changed."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Cooking question: unrelated to app store listings, so App Listing Agent should not be used; ChatGPT answers directly.",
+              "prompt": "What is a simple vegetarian dinner I can make with lentils?"
+            },
+            {
+              "description": "General coding question: not a store-listing task, so no App Listing Agent tool should be called; ChatGPT answers directly.",
+              "prompt": "Write a Python function that removes duplicates from a list while preserving order."
+            },
+            {
+              "description": "Personal writing request: unrelated to app listings, so App Listing Agent should not be used; ChatGPT writes the message itself.",
+              "prompt": "Help me write a friendly birthday message to my sister."
+            }
+          ]
+        },
+        "demo_recording_url": "https://applistingagent.com/review/applistingagent-demo.html",
+        "commerce": false,
+        "commerce_description": "App Listing Agent does not sell products or process payments in ChatGPT."
+      },
+      "publication": {
+        "countries": [],
+        "release_notes": "Tool safety labels now describe each tool's actual behavior: tools that replace saved drafts are marked as destructive, and tools limited to your own workspace are no longer marked as open-world. The listing description is updated to cover the full set of features."
+      }
+    }
+  }
+}

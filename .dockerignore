@@ -1,0 +1,36 @@
+# Keep the build context small and secret-free.
+.git
+.github
+node_modules
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets and local config: pass these at runtime, never bake them into the image.
+.env
+.env.*
+!.env.example
+*.pem
+*.p8
+*.p12
+*.key
+*service-account*.json
+*serviceAccount*.json
+credentials/
+.firebase
+firebase-debug*.log
+firestore-debug.log
+
+# Not needed in the web image
+functions/
+__tests__/
+docs/
+experiment-results/
+.claude/
+.mcp.json
+Dockerfile
+docker-compose*.yml
+*.md
+!README.md

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Prepare an app store listing"
+  short_description: "Audit, draft and review your app's store listing"
+  default_prompt: "Use $applistingagent-launch-workflow to audit my selected app and prepare its listing for review before publishing."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "applistingagent"
+      description: "App Listing Agent store listing preparation tools"
+      transport: "streamable_http"
+      url: "https://applistingagent.com/api/mcp"

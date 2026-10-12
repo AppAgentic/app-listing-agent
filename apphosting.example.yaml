@@ -1,0 +1,113 @@
+# Firebase App Hosting configuration: EXAMPLE for self-hosters.
+#
+# Copy to apphosting.yaml if you deploy App Listing Agent to your own Firebase App Hosting
+# backend instead of Docker. Replace every <PLACEHOLDER>. Values under `secret:` are
+# Google Cloud Secret Manager secret names in YOUR project; create each one and grant the
+# backend access with:
+#   firebase apphosting:secrets:set <SECRET_NAME> --project <YOUR_FIREBASE_PROJECT_ID>
+#   firebase apphosting:secrets:grantaccess <SECRET_NAME> --project <YOUR_FIREBASE_PROJECT_ID>
+#
+# On App Hosting the Admin SDK uses Application Default Credentials, so the
+# FIREBASE_ADMIN_* variables from .env.example are not needed here.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  concurrency: 80
+  minInstances: 0
+  maxInstances: 4
+
+env:
+  # Self-host mode: billing and the paywall are off, every signed-in account has full access.
+  - variable: SELF_HOSTED
+    value: "true"
+    availability: [BUILD, RUNTIME]
+  # Build-time twin for the browser bundle.
+  - variable: NEXT_PUBLIC_SELF_HOSTED
+    value: "true"
+    availability: [BUILD, RUNTIME]
+
+  # Next's production typecheck needs more than Node's default heap in Cloud Build.
+  - variable: NODE_OPTIONS
+    value: "--max-old-space-size=4096"
+    availability: [BUILD]
+
+  # Public URL of this deployment (OAuth redirects, MCP resource URL, legal page links).
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://<YOUR_DOMAIN>
+
+  # Firebase web app config (public values from Project settings > Your apps).
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: <FIREBASE_WEB_API_KEY>
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: <YOUR_FIREBASE_PROJECT_ID>.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: <YOUR_FIREBASE_PROJECT_ID>
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: <YOUR_FIREBASE_PROJECT_ID>.firebasestorage.app
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "<SENDER_ID>"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "<FIREBASE_WEB_APP_ID>"
+
+  # Store credential encryption. Choose ONE:
+  #  (a) a local 32-byte key (openssl rand -base64 32). Back it up: losing it means
+  #      re-entering every App Store Connect / Google Play credential.
+  - variable: CREDENTIALS_ENCRYPTION_KEY
+    secret: credentials-encryption-key
+  #  (b) Google Cloud KMS instead: remove (a) and set these (the key must exist and the
+  #      App Hosting service account needs roles/cloudkms.cryptoKeyEncrypterDecrypter).
+  # - variable: GCP_PROJECT_ID
+  #   value: <YOUR_FIREBASE_PROJECT_ID>
+  # - variable: GCP_KMS_LOCATION
+  #   value: global
+  # - variable: GCP_KMS_KEYRING
+  #   value: <KEYRING_NAME>
+  # - variable: GCP_KMS_KEY
+  #   value: <KEY_NAME>
+
+  # Object storage for screenshots and icons (Cloudflare R2 or any S3-compatible bucket).
+  - variable: R2_ACCOUNT_ID
+    secret: r2-account-id
+  - variable: R2_ACCESS_KEY_ID
+    secret: r2-access-key-id
+  - variable: R2_SECRET_ACCESS_KEY
+    secret: r2-secret-access-key
+  - variable: R2_BUCKET_NAME
+    value: <BUCKET_NAME>
+  # Needed at BUILD time too: its origin is written into the Content-Security-Policy.
+  - variable: R2_PUBLIC_URL
+    value: https://<PUBLIC_BUCKET_HOST>
+    availability: [BUILD, RUNTIME]
+
+  # AI providers (bring your own keys; features that need a missing key are unavailable).
+  - variable: GEMINI_API_KEY
+    secret: gemini-api-key
+  - variable: OPENAI_API_KEY
+    secret: openai-api-key
+  - variable: FAL_KEY
+    secret: fal-key
+
+  # Shared secret for scheduled maintenance endpoints (any long random string).
+  - variable: CRON_SECRET
+    secret: cron-secret
+
+  # Signup: "public" lets anyone with the URL create an account. Lock this down
+  # (or put the app behind your own access control) if the URL is public.
+  - variable: SIGNUP_ACCESS_MODE
+    value: public
+  - variable: NEXT_PUBLIC_WAITLIST_MODE
+    value: "false"
+
+  # Optional integrations: uncomment the ones you use. Without WorkOS, agents connect
+  # over MCP with scoped API keys or the in-app pairing flow.
+  # - variable: NEXT_PUBLIC_GLEAP_SDK_TOKEN     # in-app support widget for THIS dashboard
+  #   secret: gleap-sdk-token
+  #   availability: [BUILD, RUNTIME]
+  # - variable: WORKOS_AUTHKIT_DOMAIN           # OAuth for ChatGPT/Claude connectors
+  #   value: https://<YOUR_AUTHKIT_SUBDOMAIN>.authkit.app
+  # - variable: WORKOS_API_KEY
+  #   secret: workos-api-key
+  # - variable: WORKOS_MCP_RESOURCE           # optional, defaults to <NEXT_PUBLIC_APP_URL>/api/mcp
+  #   value: https://<YOUR_DOMAIN>/api/mcp
