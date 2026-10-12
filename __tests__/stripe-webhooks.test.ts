@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { billingAnalyticsEmitter } from '@/lib/analytics/billing-facts'
 import { MemoryEmissionLedger, type AnalyticsRow } from '@/lib/analytics/ingest'
 import { hasExistingSubscription } from '@/lib/billing/account'
-import { getBillingPeriod, getEffectivePlan } from '@/lib/billing/entitlements'
+import { getBillingPeriod, getEffectivePlan, getEffectivePlanLimits } from '@/lib/billing/entitlements'
 import { getProductAccess } from '@/lib/billing/access'
-import { LIVE_STRIPE_ACCOUNT_ID, SANDBOX_STRIPE_ACCOUNT_ID, planForPrice } from '@/lib/stripe/config'
+import { LIVE_STRIPE_ACCOUNT_ID, SANDBOX_STRIPE_ACCOUNT_ID, planForPrice, stripeBillingConfig } from '@/lib/stripe/config'
+import { BILLING_PLANS } from '@/lib/billing/catalog'
 import {
   intakeStripeEvent,
   processDueStripeEvents,
@@ -14,15 +15,14 @@ import {
 } from '@/lib/stripe/webhooks'
 import type { AccountContext } from '@/lib/org/context'
 import { createBillingFirestore } from './helpers/billing-firestore'
-import { createFakeStripe, sandboxConfig, signedEvent } from './helpers/stripe-fixtures'
+import { createFakeStripe, sandboxConfig, sandboxEnv, signedEvent } from './helpers/stripe-fixtures'
 
 const CUSTOMER = 'cus_customer00001'
 const PRO_MONTHLY = 'price_promonthly0001'
 
-function setup() {
+function setup(config = sandboxConfig()) {
   const store = createBillingFirestore()
   const stripe = createFakeStripe()
-  const config = sandboxConfig()
   const rows: AnalyticsRow[] = []
   const emit = billingAnalyticsEmitter({
     ledger: new MemoryEmissionLedger(),
@@ -266,3 +266,29 @@ describe('annual allowances refresh monthly', () => {
     expect(new Set(['2026-02-10', '2026-03-10', '2026-04-10', '2026-11-10'].map(day => period(`${day}T00:00:00Z`).key)).size).toBe(4)
   })
 })
+
+describe('Indie entitlements', () => {
+  const INDIE_MONTHLY = 'price_indiemonthly01'
+  const indieConfig = () => stripeBillingConfig({ ...sandboxEnv(), STRIPE_PRICE_INDIE_MONTHLY: INDIE_MONTHLY, STRIPE_PRICE_INDIE_ANNUAL: 'price_indieannual001' })!
+
+  it('grants the indie plan and its allowances when the Indie prices are configured', async () => {
+    const t = setup(indieConfig())
+    const { subscription, sessionId } = t.stripe.subscribe({ customer: CUSTOMER, priceId: INDIE_MONTHLY, trialDays: 7, accountPath: 'users/owner-one' })
+    await t.deliver('checkout.session.completed', { id: sessionId, object: 'checkout.session', customer: CUSTOMER })
+    expect((await t.deliver('customer.subscription.created', subscription as never)).state).toBe('processed')
+    expect(t.user().billing).toMatchObject({ source: 'stripe', status: 'trialing', plan: 'indie', billingInterval: 'monthly' })
+    expect(getEffectivePlan(t.context())).toBe('indie')
+    expect(getProductAccess(t.context()).allowed).toBe(true)
+    expect(getEffectivePlanLimits(t.context())).toEqual(BILLING_PLANS.indie.limits)
+    expect(JSON.parse(t.events('trial_started')[0].props as string)).toEqual({ plan: 'indie', interval: 'month', trial_days: 7 })
+  })
+
+  it('never grants from an Indie price on a deployment without Indie price ids', async () => {
+    const t = setup()
+    const { subscription } = t.stripe.subscribe({ customer: CUSTOMER, priceId: INDIE_MONTHLY, accountPath: 'users/owner-one' })
+    const result = await t.deliver('customer.subscription.created', subscription as never)
+    expect(result.state).toBe('failed')
+    expect(t.user().billing.source).toBe('none')
+  })
+})
+

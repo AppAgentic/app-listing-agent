@@ -3,7 +3,7 @@ import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import type { AccountContext } from '@/lib/org/context'
 import { getBillingPeriod, getEffectivePlan } from '@/lib/billing/entitlements'
-import { BILLING_PLANS } from '@/lib/billing/catalog'
+import { BILLING_PLANS, OVERAGE_RATES, PLAN_ORDER, PUBLIC_BILLING_PLANS, isOfferedBillingPlan, offeredBillingPlans } from '@/lib/billing/catalog'
 import { SANDBOX_STRIPE_ACCOUNT_ID } from '@/lib/stripe/config'
 
 function context(overrides: Record<string, unknown> = {}): AccountContext {
@@ -50,6 +50,36 @@ describe('server-owned entitlements', () => {
       annualPriceUsd: 5990,
     })
     expect(BILLING_PLANS.enterprise.limits.icons).toBeGreaterThan(0)
+  })
+
+  it('defines Indie as the cheapest paid plan: $49/mo, $490/yr, 1 app, small allowances, unlimited publishing', () => {
+    expect(BILLING_PLANS.indie).toEqual({
+      id: 'indie',
+      name: 'Indie',
+      monthlyPriceUsd: 49,
+      annualPriceUsd: 490,
+      public: true,
+      limits: { translations: 50, screenshots: 10, icons: 3, publishing: -1, apps: 1, teamMembers: 1 },
+    })
+    expect(OVERAGE_RATES.indie).toBeNull()
+    expect(PUBLIC_BILLING_PLANS).toEqual(['indie', 'starter', 'pro', 'business'])
+    expect(Object.keys(BILLING_PLANS)).toEqual(['free', 'indie', 'starter', 'pro', 'business', 'enterprise'])
+    expect(PLAN_ORDER).toEqual(['free', 'indie', 'starter', 'pro', 'business', 'enterprise'])
+    // Ordering by price, cheapest paid tier first.
+    const paid = PLAN_ORDER.filter(plan => plan !== 'free' && plan !== 'enterprise').map(plan => BILLING_PLANS[plan].monthlyPriceUsd!)
+    expect(paid).toEqual([...paid].sort((a, b) => a - b))
+  })
+
+  it('offers Indie only when NEXT_PUBLIC_BILLING_INDIE_ENABLED is true', () => {
+    expect(offeredBillingPlans(false)).toEqual(['starter', 'pro', 'business'])
+    expect(offeredBillingPlans(true)).toEqual(['indie', 'starter', 'pro', 'business'])
+    expect(offeredBillingPlans()).toEqual(['starter', 'pro', 'business'])
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    expect(offeredBillingPlans()).toEqual(['indie', 'starter', 'pro', 'business'])
+    expect(isOfferedBillingPlan('indie')).toBe(true)
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', '1')
+    expect(isOfferedBillingPlan('indie')).toBe(false)
+    expect(isOfferedBillingPlan('enterprise')).toBe(false)
   })
 
   it('ignores a legacy self-assigned plan without verified billing', () => {

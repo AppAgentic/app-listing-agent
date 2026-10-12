@@ -129,3 +129,48 @@ describe('structured data', () => {
     expect(container.querySelectorAll('h1')).toHaveLength(1)
   })
 })
+
+describe('Indie on /pricing and in structured data', () => {
+  afterEach(() => { vi.unstubAllEnvs(); vi.resetModules() })
+
+  it('advertises plans from $99 with no Indie offer while Indie is not offered', () => {
+    expect(pricedPublicPlans().map(plan => plan.id)).toEqual(['starter', 'pro', 'business'])
+    expect(planOffersJsonLd().some(offer => offer.name.startsWith('Indie'))).toBe(false)
+    expect(pricingMetadata.description).toContain('start at $99/month')
+    const { container } = render(<PricingPage />)
+    expect(container.textContent).not.toContain('Indie')
+  })
+
+  it('adds Indie to the cards, the comparison table, the "from" price and the JSON-LD offers when enabled', async () => {
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    vi.resetModules()
+    const site = await import('@/lib/seo/site')
+    const page = await import('@/app/pricing/page')
+    const fastlane = await import('@/app/(public)/compare/fastlane/page')
+
+    expect(site.pricedPublicPlans().map(plan => plan.id)).toEqual(['indie', 'starter', 'pro', 'business'])
+    const offers = site.planOffersJsonLd()
+    expect(offers.slice(0, 2).map(offer => [offer.name, offer.price])).toEqual([['Indie (monthly)', '49.00'], ['Indie (annual)', '490.00']])
+
+    const description = String(page.metadata.description)
+    expect(description).toContain('start at $49/month')
+    expect(description).toContain('Indie, Solo, Pro, Studio and Enterprise')
+    expect(description.length).toBeLessThanOrEqual(155)
+
+    const { container } = render(<page.default />)
+    const text = container.textContent ?? ''
+    expect(text).toContain('$49 a month for Indie')
+    expect(text).toContain('$490/yr')
+    expect(text).toContain('(2 months free)')
+    const indieRow = Array.from(container.querySelectorAll('tbody tr')).find(row => row.querySelector('th')?.textContent === 'Indie')!
+    expect(Array.from(indieRow.querySelectorAll('td')).map(cell => cell.textContent)).toEqual(['$49/mo', '$490/yr', '1', '50', '10', '3', '1'])
+    const graph = JSON.parse(container.querySelector('script[type="application/ld+json"]')!.innerHTML)['@graph'] as Array<Record<string, unknown>>
+    const software = graph.find(node => node['@type'] === 'SoftwareApplication') as { offers: Array<{ name: string }> }
+    expect(software.offers).toHaveLength(8)
+    expect(software.offers[0].name).toBe('Indie (monthly)')
+
+    const { container: compare } = render(<fastlane.default />)
+    expect(compare.textContent).toContain('Paid plans from $49/month')
+  })
+})
+

@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { billingIntentUrl, isBillingDestination, readPurchaseIntent, resolveLoginDestination, safeLocalReturnTo } from '@/lib/billing/intent'
+
+afterEach(() => vi.unstubAllEnvs())
 
 describe('purchase intent through authentication', () => {
   it.each(['starter', 'pro', 'business', 'enterprise'] as const)('retains %s and annual billing through an encoded login return', plan => {
@@ -13,6 +15,13 @@ describe('purchase intent through authentication', () => {
     expect(resolveLoginDestination(new URLSearchParams('plan=pro'))).toBe('/billing?plan=pro&interval=monthly')
     expect(readPurchaseIntent(new URLSearchParams('plan=pro&interval=weekly'))).toBeNull()
     expect(readPurchaseIntent(new URLSearchParams('plan=toString'))).toBeNull()
+  })
+  it('carries an Indie intent only when the deployment offers Indie', () => {
+    expect(readPurchaseIntent(new URLSearchParams('plan=indie&interval=annual'))).toBeNull()
+    expect(resolveLoginDestination(new URLSearchParams('plan=indie'))).toBe('/dashboard')
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    expect(readPurchaseIntent(new URLSearchParams('plan=indie&interval=annual'))).toEqual({ plan: 'indie', interval: 'annual' })
+    expect(resolveLoginDestination(new URLSearchParams('plan=indie'))).toBe('/billing?plan=indie&interval=monthly')
   })
   it('keeps invitation and OAuth handoffs ahead of purchase intent', () => {
     expect(resolveLoginDestination(new URLSearchParams('invite=abc/def&plan=pro&returnTo=https://evil.example'))).toBe('/invite/abc%2Fdef')

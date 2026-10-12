@@ -7,7 +7,7 @@ vi.mock('@/components/concierge/booking-link', () => ({
   BookingLink: ({ source: _source, ...props }: any) => <a {...props} />,
   TrackedFunnelLink: ({ source: _source, ...props }: any) => <a {...props} />,
 }))
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllEnvs() })
 
 describe('pricing to onboarding trial', () => {
   it('carries the chosen annual plan into onboarding, which ends in the trial checkout', () => {
@@ -39,3 +39,32 @@ describe('pricing to onboarding trial', () => {
     expect(screen.getByRole('link', { name: 'Discuss Enterprise' }).getAttribute('href')).toContain('/book?')
   })
 })
+
+describe('Indie on the pricing cards', () => {
+  it('is hidden until the deployment offers it, leaving the existing cards unchanged', () => {
+    render(<PricingSection />)
+    expect(screen.queryByRole('heading', { name: 'Indie' })).toBeNull()
+    expect(screen.getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)).toEqual(['Solo', 'Pro', 'Studio', 'Enterprise'])
+  })
+  it('shows Indie first, from the catalog, and starts its trial through onboarding', () => {
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    render(<PricingSection />)
+    expect(screen.getAllByRole('heading', { level: 3 }).map(heading => heading.textContent)).toEqual(['Indie', 'Solo', 'Pro', 'Studio', 'Enterprise'])
+    const links = screen.getAllByRole('link', { name: 'Start 7-day free trial' })
+    expect(links).toHaveLength(4)
+    const card = links[0].parentElement!
+    expect(within(card).getByText('$490 billed annually')).toBeTruthy()
+    expect(within(card).getByText('1 app')).toBeTruthy()
+    expect(within(card).getByText('50 translations/mo')).toBeTruthy()
+    expect(within(card).getByText('10 screenshot credits/mo')).toBeTruthy()
+    expect(within(card).getByText('3 icon credits/mo')).toBeTruthy()
+    expect(within(card).getByText('1 team member')).toBeTruthy()
+    const url = new URL(links[0].getAttribute('href')!, 'https://applistingagent.com')
+    expect(url.pathname).toBe('/onboarding')
+    expect(url.searchParams.get('plan')).toBe('indie')
+    expect(url.searchParams.get('interval')).toBe('annual')
+    fireEvent.click(screen.getByRole('switch', { name: 'Annual billing' }))
+    expect(within(links[0].parentElement!).getByText('$49')).toBeTruthy()
+  })
+})
+

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, CreditCard, Loader2, Sparkles } from 'lucide-react'
 import {
   BILLING_PLANS,
-  PUBLIC_BILLING_PLANS,
+  offeredBillingPlans,
   type BillingInterval,
   type PublicBillingPlan,
 } from '@/lib/billing/catalog'
@@ -13,6 +13,7 @@ import { standardInterval } from '@/lib/analytics/events'
 import { readStoredMarketingAttribution } from '@/lib/marketing/attribution'
 
 const PLAN_NOTES: Record<PublicBillingPlan, string> = {
+  indie: 'For your first app',
   starter: 'For an independent app builder',
   pro: 'For growing apps and automated workflows',
   business: 'For a team managing an app portfolio',
@@ -33,7 +34,9 @@ export interface TrialStepProps {
  * (card required). An account that already used its trial sees the same step as a paid checkout.
  */
 export function TrialStep({ trialDays, initialPlan, initialInterval, canceled }: TrialStepProps) {
-  const [plan, setPlan] = useState<PublicBillingPlan>(initialPlan ?? 'pro')
+  const [plan, setPlan] = useState<PublicBillingPlan>(
+    initialPlan && offeredBillingPlans().includes(initialPlan) ? initialPlan : 'pro'
+  )
   const [interval, setInterval] = useState<BillingInterval>(initialInterval ?? 'monthly')
   const [busy, setBusy] = useState<'checkout' | null>(null)
   const hasTrial = trialDays > 0
@@ -135,7 +138,7 @@ export function TrialStep({ trialDays, initialPlan, initialInterval, canceled }:
       </div>
 
       <div className="grid gap-3" role="radiogroup" aria-label="Plan">
-        {PUBLIC_BILLING_PLANS.map(id => {
+        {offeredBillingPlans().map(id => {
           const option = BILLING_PLANS[id]
           const monthly = interval === 'annual' ? option.annualPriceUsd! / 12 : option.monthlyPriceUsd!
           const selected = plan === id
@@ -156,7 +159,7 @@ export function TrialStep({ trialDays, initialPlan, initialInterval, canceled }:
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-white font-semibold tabular-nums">{money(monthly)}<span className="text-xs text-neutral-400 font-normal"> /mo</span></p>
-                  <p className="text-[11px] text-neutral-500">{option.limits.apps === -1 ? 'Unlimited' : option.limits.apps} apps · {option.limits.screenshots} screenshots/mo</p>
+                  <p className="text-[11px] text-neutral-500">{option.limits.apps === -1 ? 'Unlimited' : option.limits.apps} {option.limits.apps === 1 ? 'app' : 'apps'} · {option.limits.screenshots} screenshots/mo</p>
                 </div>
                 <span aria-hidden="true" className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${selected ? 'border-purple-400 bg-purple-500' : 'border-neutral-600'}`}>
                   {selected && <Check className="h-3.5 w-3.5 text-white" />}

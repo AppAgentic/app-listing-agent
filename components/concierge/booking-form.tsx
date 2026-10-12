@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import { trackConciergeEvent, TrackedFunnelLink } from './booking-link'
 import { resolveMarketingAttribution } from '@/lib/marketing/attribution'
+import { BILLING_PLANS, offeredBillingPlans } from '@/lib/billing/catalog'
 
 type Platform = 'ios' | 'android'
 type Step = 'fit' | 'details' | 'result'
@@ -42,7 +43,7 @@ export function BookingForm() {
   const [launchTiming, setLaunchTiming] = useState('this_month')
   const [customerType, setCustomerType] = useState('indie_developer')
   const [preferredPlan, setPreferredPlan] = useState(
-    ['starter', 'pro', 'business', 'enterprise'].includes(initialPlan || '') ? initialPlan! : 'unsure'
+    [...offeredBillingPlans(), 'enterprise'].includes(initialPlan || '') ? initialPlan! : 'unsure'
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -229,7 +230,7 @@ export function BookingForm() {
                 <label><span className={labelClass}>Company <span className="normal-case tracking-normal text-white/25">(optional)</span></span><input className={fieldClass} name="company" autoComplete="organization" placeholder="Acme Apps" /></label>
                 <label><span className={labelClass}>App name</span><input className={fieldClass} name="appName" required minLength={2} placeholder="Your app" /></label>
                 <label><span className={labelClass}>You are</span><select value={customerType} onChange={event => setCustomerType(event.target.value)} className={fieldClass}><option value="indie_developer">Independent developer</option><option value="app_studio">App studio</option><option value="agency">Agency</option><option value="enterprise">Enterprise team</option><option value="other">Other</option></select></label>
-                <label><span className={labelClass}>Likely plan</span><select value={preferredPlan} onChange={event => setPreferredPlan(event.target.value)} className={fieldClass}><option value="unsure">Not sure yet</option><option value="starter">Solo · $99/mo</option><option value="pro">Pro · $249/mo</option><option value="business">Studio · $599/mo</option><option value="enterprise">Enterprise</option></select></label>
+                <label><span className={labelClass}>Likely plan</span><select value={preferredPlan} onChange={event => setPreferredPlan(event.target.value)} className={fieldClass}><option value="unsure">Not sure yet</option>{offeredBillingPlans().map(id => <option key={id} value={id}>{BILLING_PLANS[id].name} · ${BILLING_PLANS[id].monthlyPriceUsd!.toLocaleString('en-US')}/mo</option>)}<option value="enterprise">Enterprise</option></select></label>
                 <label className="sm:col-span-2"><span className={labelClass}>Preferred agent</span><select name="preferredAgent" defaultValue="codex" className={fieldClass}><option value="codex">Codex</option><option value="claude">Claude Code</option><option value="cursor">Cursor</option><option value="other">Another terminal agent</option><option value="none">I do not use one yet</option></select></label>
                 <label className="sm:col-span-2"><span className={labelClass}>What is slowing down your store work?</span><textarea className={`${fieldClass} min-h-28 resize-y`} name="biggestStoreProblem" required minLength={10} placeholder="For example: screenshots and metadata take too long across locales…" /></label>
               </div>

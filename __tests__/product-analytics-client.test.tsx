@@ -54,12 +54,14 @@ describe('browser product analytics', () => {
     trackFunnelCta('hero_self_service', '/login?mode=signup&source=hero')
     trackFunnelCta('nav', '/book?source=nav')
     trackFunnelCta('pricing_pro_self_service', '/onboarding?plan=pro&interval=annual&reason=pricing')
+    trackFunnelCta('pricing_indie_self_service', '/onboarding?plan=indie&interval=monthly&reason=pricing')
     trackFunnelCta('unrelated_source', '/somewhere')
     const sent = bodies()
     expect(sent.map(body => [body.event, body.props])).toEqual([
       ['signup_cta_clicked', { placement: 'hero' }],
       ['booking_cta_clicked', { placement: 'nav' }],
       ['plan_selected', { plan: 'pro', placement: 'pricing', interval: 'year' }],
+      ['plan_selected', { plan: 'indie', placement: 'pricing', interval: 'month' }],
     ])
     for (const body of sent) expect(parseClientEvent(body)).not.toBeNull()
     forgetAnalyticsIdentity()

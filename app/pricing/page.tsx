@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react'
 import PricingSection from '@/components/PricingSection'
 import { PublicFooter, PublicNav } from '@/components/public/trust-page'
 import { BookingLink, TrackedFunnelLink } from '@/components/concierge/booking-link'
-import { BILLING_PLANS, type BillingPlanDefinition } from '@/lib/billing/catalog'
+import { BILLING_PLANS, offeredBillingPlans, type BillingPlanDefinition } from '@/lib/billing/catalog'
 import { serializeJsonLd } from '@/lib/seo/json-ld'
 import {
   SITE_URL,
@@ -22,7 +22,7 @@ import {
 // page, the JSON-LD offers and checkout cannot drift apart.
 
 
-const tablePlans: BillingPlanDefinition[] = (['starter', 'pro', 'business', 'enterprise'] as const)
+const tablePlans: BillingPlanDefinition[] = [...offeredBillingPlans(), 'enterprise' as const]
   .map(id => BILLING_PLANS[id])
   .filter(plan => plan.public)
 

@@ -56,7 +56,7 @@ export function useApiKeys({ plan }: UseApiKeysOptions): UseApiKeysReturn {
   const [creating, setCreating] = useState(false)
   const [revokingId, setRevokingId] = useState<string | null>(null)
 
-  const isFreePlan = plan === 'free' || plan === 'starter'
+  const isFreePlan = plan === 'free' || plan === 'indie' || plan === 'starter'
   const keyLimit = getKeyLimit(plan)
   const canCreateKey = keys.length < keyLimit
 

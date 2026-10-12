@@ -90,7 +90,7 @@ export function trackFunnelCta(source: string, href: unknown): void {
     trackEvent(cta[2] === 'self_service' ? 'signup_cta_clicked' : 'booking_cta_clicked', { props: { placement: cta[1] } })
     return
   }
-  const pricing = /^pricing_(starter|pro|business|enterprise)_(self_service|assisted|guided)$/.exec(source)
+  const pricing = /^pricing_(indie|starter|pro|business|enterprise)_(self_service|assisted|guided)$/.exec(source)
   if (!pricing) return
   if (pricing[2] !== 'self_service') {
     trackEvent('booking_cta_clicked', { props: { placement: 'pricing' } })

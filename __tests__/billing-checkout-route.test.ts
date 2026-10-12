@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { SANDBOX_STRIPE_ACCOUNT_ID } from '@/lib/stripe/config'
+import { SANDBOX_STRIPE_ACCOUNT_ID, stripeBillingConfig } from '@/lib/stripe/config'
+import { sandboxConfig, sandboxEnv } from './helpers/stripe-fixtures'
 
 const mocks = vi.hoisted(() => ({ session: vi.fn(), account: vi.fn(), prepare: vi.fn(), analytics: vi.fn(), enabled: vi.fn(), runtime: vi.fn() }))
 vi.mock('@/lib/auth/session', () => ({ getSession: mocks.session }))
@@ -21,7 +22,7 @@ beforeEach(() => {
   vi.stubEnv('STRIPE_ACCOUNT_ID', SANDBOX_STRIPE_ACCOUNT_ID)
   vi.stubEnv('STRIPE_LIVEMODE', 'false')
   mocks.enabled.mockReturnValue(true)
-  mocks.runtime.mockReturnValue({ config: { livemode: false }, stripe: {} })
+  mocks.runtime.mockReturnValue({ config: sandboxConfig(), stripe: {} })
   mocks.session.mockResolvedValue({ userId: 'one', email: 'test@example.com', plan: 'free' })
   mocks.account.mockResolvedValue({ data: {}, user: {}, canManage: true, ref: { path: 'users/one' } })
   mocks.prepare.mockResolvedValue({ id: 'cs_test_one', purchaseUrl: 'https://checkout.stripe.com/c/pay/cs_test_one', trialDays: 7, expiresAt: Date.now() + 86_400_000 })
@@ -67,5 +68,47 @@ describe('checkout authorization and recovery', () => {
     const response = await POST(request())
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ id: 'cs_test_one' })
+  })
+})
+
+describe('Indie checkout before and after its Stripe prices exist', () => {
+  const indieConfig = () => stripeBillingConfig({
+    ...sandboxEnv(),
+    STRIPE_PRICE_INDIE_MONTHLY: 'price_indiemonthly01',
+    STRIPE_PRICE_INDIE_ANNUAL: 'price_indieannual001',
+  })!
+
+  it('refuses Indie with a clear error while its price ids are missing, even with the flag on', async () => {
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    const response = await POST(request({ plan: 'indie', interval: 'monthly' }))
+    expect(response.status).toBe(409)
+    const body = await response.json()
+    expect(body).toMatchObject({ code: 'plan_unavailable' })
+    expect(body.error).toBe('The Indie plan is not available yet. Choose Solo, Pro or Studio.')
+    expect(mocks.prepare).not.toHaveBeenCalled()
+  })
+
+  it('keeps every other plan purchasable while Indie is unavailable', async () => {
+    for (const plan of ['starter', 'pro', 'business']) {
+      expect((await POST(request({ plan, interval: 'monthly' }))).status).toBe(200)
+    }
+    expect(mocks.prepare).toHaveBeenCalledTimes(3)
+  })
+
+  it('refuses Indie while the display flag is off, even when its prices exist', async () => {
+    mocks.runtime.mockReturnValue({ config: indieConfig(), stripe: {} })
+    const response = await POST(request({ plan: 'indie', interval: 'annual' }))
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({ code: 'plan_unavailable' })
+    expect(mocks.prepare).not.toHaveBeenCalled()
+  })
+
+  it('sells Indie once its prices exist and the flag is on', async () => {
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    const config = indieConfig()
+    mocks.runtime.mockReturnValue({ config, stripe: {} })
+    const response = await POST(request({ plan: 'indie', interval: 'annual' }))
+    expect(response.status).toBe(200)
+    expect(mocks.prepare).toHaveBeenCalledWith(expect.objectContaining({ plan: 'indie', interval: 'annual', config }))
   })
 })

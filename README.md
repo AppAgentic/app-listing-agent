@@ -1,21 +1,83 @@
+<p align="center">
+  <a href="https://applistingagent.com" target="_blank">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset=".github/assets/logo-dark.png">
+      <img alt="App Listing Agent" src=".github/assets/logo-light.png" width="360">
+    </picture>
+  </a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL%203.0-blue.svg" alt="License: AGPL-3.0"></a>
+  <a href="https://github.com/AppAgentic/app-listing-agent/stargazers"><img src="https://img.shields.io/github/stars/AppAgentic/app-listing-agent?style=social" alt="GitHub stars"></a>
+  <a href="https://github.com/AppAgentic/app-listing-agent/actions/workflows/ci.yml"><img src="https://github.com/AppAgentic/app-listing-agent/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+</p>
+
 <div align="center">
+  <strong>
+    <a href="https://applistingagent.com">App Listing Agent</a> is an open-source App Store Connect and Google Play agent: metadata, screenshots, icons, translations, in-app purchases and launch readiness, driven from your AI agent with approval before anything is published.
 
-# App Listing Agent
-
-**Open-source App Store Connect + Google Play agent. Self-host it or use the cloud.**
-
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/AppAgentic/app-listing-agent?style=social)](https://github.com/AppAgentic/app-listing-agent/stargazers)
-[![CI](https://github.com/AppAgentic/app-listing-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/AppAgentic/app-listing-agent/actions/workflows/ci.yml)
-
-[Cloud](https://applistingagent.com) · [Self-hosting guide](docs/self-hosting.md) · [MCP docs](https://applistingagent.com/docs/mcp) · [Contributing](CONTRIBUTING.md)
-
-<!-- TODO: add docs/images/demo.gif (30 s: an agent fixes a listing, then translates and pushes screenshots) -->
-<!-- ![App Listing Agent demo](docs/images/demo.gif) -->
-
+  Use App Listing Agent Cloud for a fully managed experience, or deploy the open-source edition on your own infrastructure.
+  </strong>
 </div>
 
-App Listing Agent manages everything on your store listings, for iOS and Android, from one dashboard and from any AI agent that speaks MCP (Claude, ChatGPT, Codex, Cursor and others). Your agent drafts the work; nothing is published to a store until you approve it.
+<p align="center">
+  <br />
+  <a href="https://applistingagent.com/docs"><strong>Explore the docs »</strong></a>
+  <br />
+</p>
+
+<p align="center">
+  <a href="https://applistingagent.com/login?mode=signup&source=github">Cloud sign-up</a>
+  ·
+  <a href="https://applistingagent.com/docs/mcp">MCP docs</a>
+  ·
+  <a href="docs/self-hosting.md">Self-hosting guide</a>
+  ·
+  <a href="https://github.com/AppAgentic/app-listing-agent/discussions">Discussions</a>
+  ·
+  <a href="https://github.com/AppAgentic/app-listing-agent/issues">Issues</a>
+  ·
+  <a href="CONTRIBUTING.md">Contributing</a>
+</p>
+
+<br />
+
+<p align="center"><strong>Manage listings on:</strong></p>
+<div align="center">
+  <img alt="App Store" title="App Store" src=".github/assets/icons/app-store.svg" width="32">
+  <img alt="Google Play" title="Google Play" src=".github/assets/icons/google-play.svg" width="32">
+</div>
+
+<p align="center"><strong>With your favorite AI agent:</strong></p>
+<div align="center">
+  <a href="https://applistingagent.com/docs/mcp/installation" title="ChatGPT"><img alt="ChatGPT" src=".github/assets/icons/chatgpt.svg" width="32"></a>
+  <a href="https://applistingagent.com/docs/mcp/installation" title="Claude"><img alt="Claude" src=".github/assets/icons/claude.svg" width="32"></a>
+  <a href="https://applistingagent.com/docs/mcp/installation" title="Claude Code"><img alt="Claude Code" src=".github/assets/icons/claude-code.svg" width="32"></a>
+  <a href="https://applistingagent.com/docs/mcp/installation" title="Codex"><img alt="Codex" src=".github/assets/icons/codex.svg" width="32"></a>
+  <a href="https://applistingagent.com/docs/mcp/installation" title="Cursor"><img alt="Cursor" src=".github/assets/icons/cursor.svg" width="32"></a>
+  <a href="https://applistingagent.com/docs/mcp" title="MCP server (any remote-MCP client)"><img alt="MCP server" src=".github/assets/icons/mcp.svg" width="32"></a>
+</div>
+
+<br />
+
+## See it in action
+
+<p align="center">
+  <a href="https://screens.appstorecopilot.com/marketing/vsl/v6/app-listing-agent-1080.mp4" target="_blank">
+    <img alt="An agent asks App Listing Agent to launch an app in Germany: it translates the metadata, generates screenshot sets and localised store screenshots, icons and custom product pages" src=".github/assets/demo.gif" width="900">
+  </a>
+  <br />
+  <sub>13 seconds from the 85-second demo. <a href="https://screens.appstorecopilot.com/marketing/vsl/v6/app-listing-agent-1080.mp4">Watch the full video (with sound)</a>.</sub>
+</p>
+
+## Features
+
+| ![Store readiness report inside an AI chat](.github/assets/feature-readiness.jpg) | ![Icon studio comparing the current and new icon on a home screen](.github/assets/feature-icons.jpg) |
+| :---: | :---: |
+| **Store readiness audit in your agent.** Blockers and the recommended next step, rendered as an interactive MCP App in hosts that support it. | **Icon studio.** Generate concepts in ten style presets and judge them on a real home screen before you ship. |
+| ![Screenshot wizard with a generated marketing screenshot](.github/assets/feature-screenshots.jpg) | ![Localised App Store screenshots for German, Japanese, Spanish and French](.github/assets/feature-translations.jpg) |
+| **Marketing screenshots.** Turn raw app captures into store-ready screenshots, then save them to the project. | **Every locale.** Translate metadata and the text inside screenshots across all 50 App Store and 83 Google Play locales. |
 
 ## What it does
 
@@ -63,14 +125,20 @@ Then connect an agent:
 
 ### Cloud vs self-host
 
+Choose [App Listing Agent Cloud](https://applistingagent.com) for a fully managed experience, or run the open-source edition on your own infrastructure. Both are the same product: self-hosted installs have billing switched off and no plan limits.
+
 | | Cloud | Self-host |
 |---|---|---|
-| Setup | None | Firebase, bucket, Docker, HTTPS |
-| AI for screenshots, icons, translations | Hosted credits included | Your own Gemini / OpenAI / fal.ai keys |
-| ChatGPT, Claude and Meta directory connectors | Approved, one click | Any MCP client with an API key, or your own OAuth |
-| Updates and backups | Handled for you | You run them |
+| Price | Paid plans with a 7-day free trial | Free, AGPL-3.0; you pay for your own infrastructure and AI usage |
+| Setup | Sign up and connect a store in minutes | Firebase, an R2 bucket, Docker and HTTPS ([guide](docs/self-hosting.md)) |
+| Hosting and data | Hosted by App Agentic | Your own Firebase project and bucket |
+| Apps, translations, screenshots, icons | Limited by plan | No limits |
+| AI for screenshots, icons, translations | Included, keys managed for you | Your own Gemini / OpenAI / fal.ai keys |
+| Background jobs (screenshot translation and push) | Included | Deploy the Cloud Functions in `functions/` |
+| Agent access (MCP) | Hosted endpoint with OAuth sign-in or scoped API keys | Point any MCP client at your instance with an API key, or your own OAuth |
+| Updates and backups | Handled for you | You pull updates and run backups |
 | Support | Email and in-app | GitHub issues |
-| Price | Paid plans with a free trial | Free, AGPL-3.0 |
+| Source access | Same application code, operated by us | Full source; fork and modify under the AGPL |
 
 ## How it compares
 
@@ -94,6 +162,15 @@ If you need CI builds, signing and binary uploads, use fastlane or asc for that.
 ## Tech stack
 
 Next.js 16 (App Router) · TypeScript · Firebase Authentication and Firestore · Cloud Functions workers · Cloudflare R2 · Gemini, OpenAI and fal.ai · Tailwind CSS and Radix UI · Vitest. See [AGENTS.md](AGENTS.md) for the architecture.
+
+## Star History
+
+<a href="https://star-history.com/#AppAgentic/app-listing-agent&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=AppAgentic/app-listing-agent&type=Date&theme=dark">
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=AppAgentic/app-listing-agent&type=Date" width="600">
+  </picture>
+</a>
 
 ## Contributing
 

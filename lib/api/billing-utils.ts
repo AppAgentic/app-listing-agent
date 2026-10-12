@@ -1,4 +1,4 @@
-import { BILLING_PLANS, PLAN_LIMITS, type UserPlan } from '@/lib/billing/catalog'
+import { BILLING_PLANS, PLAN_LIMITS, PLAN_ORDER, offeredBillingPlans, type UserPlan } from '@/lib/billing/catalog'
 import { AccountContext, getPlanLimits, getAccountPlan } from '@/lib/org/context'
 import { checkUsageLimit } from '@/lib/api/usage'
 
@@ -18,8 +18,6 @@ export interface UpgradeSuggestion {
   savings: number
   wouldCoverJob: boolean
 }
-
-const PLAN_ORDER: UserPlan[] = ['free', 'starter', 'pro', 'business', 'enterprise']
 
 /**
  * Calculate billing info for a translation operation
@@ -75,6 +73,8 @@ export function getUpgradeSuggestions(
   // Check each higher plan
   for (let i = currentPlanIndex + 1; i < PLAN_ORDER.length; i++) {
     const upgradePlan = PLAN_ORDER[i]
+    // Never suggest a self-serve plan this deployment does not sell yet (Indie before its prices are live).
+    if (upgradePlan !== 'enterprise' && !(offeredBillingPlans() as UserPlan[]).includes(upgradePlan)) continue
     const upgradeLimit = PLAN_LIMITS[upgradePlan][operationType]
     const wouldCoverJob = upgradeLimit === -1 || totalNeeded <= upgradeLimit
     const currentPrice = currentDefinition.monthlyPriceUsd || 0

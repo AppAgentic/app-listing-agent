@@ -13,3 +13,7 @@ regexes = ['''-----BEGIN PRIVATE KEY-----\\nmock\\n-----END PRIVATE KEY-----''']
 [[allowlists]]
 description = "localStorage cache key, not a secret"
 regexes = ['''^asc\.trial-banner\.v1$''']
+
+[[allowlists]]
+description = "Stripe price lookup keys (public catalog identifiers, not secrets)"
+regexes = ['''^asc_[a-z]+_(monthly|annual)_usd_v1$''']

@@ -1,6 +1,8 @@
+import { isOfferedBillingPlan, type PublicBillingPlan } from './catalog'
+
 /** Untrusted URL hints select a review screen; they never grant access or start payment. */
 export type PurchaseIntent = {
-  plan: 'starter' | 'pro' | 'business' | 'enterprise'
+  plan: PublicBillingPlan | 'enterprise'
   interval: 'monthly' | 'annual'
 }
 type SearchValues = { get(name: string): string | null }
@@ -8,7 +10,8 @@ type SearchValues = { get(name: string): string | null }
 export function readPurchaseIntent(params: SearchValues): PurchaseIntent | null {
   const plan = params.get('plan')
   const interval = params.get('interval') || 'monthly'
-  if (!['starter', 'pro', 'business', 'enterprise'].includes(plan || '') ||
+  // A plan this deployment does not offer (Indie before its prices are live) falls back to the default selection.
+  if (!(plan === 'enterprise' || isOfferedBillingPlan(plan)) ||
       !['monthly', 'annual'].includes(interval)) return null
   return { plan, interval } as PurchaseIntent
 }

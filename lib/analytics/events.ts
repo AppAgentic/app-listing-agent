@@ -16,7 +16,7 @@ export const SESSION_IDLE_MS = 30 * 60_000
 
 export const ONBOARDING_STEPS = 2
 
-const PLANS = ['starter', 'pro', 'business'] as const
+const PLANS = ['indie', 'starter', 'pro', 'business'] as const
 const SELECTABLE_PLANS = [...PLANS, 'enterprise'] as const
 const INTERVALS = ['month', 'year'] as const
 const CTA_PLACEMENTS = ['nav', 'hero', 'final_cta', 'pricing', 'audit'] as const

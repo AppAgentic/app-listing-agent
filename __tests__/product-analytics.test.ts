@@ -99,6 +99,7 @@ describe('client event allow-list', () => {
   it('rejects unknown events, props, free text, ids in surfaces and server-only facts', () => {
     expect(parseClientEvent({ ...base, event: 'page_view', surface: 'home' })?.surface).toBe('home')
     expect(parseClientEvent({ ...base, event: 'onboarding_step', step: 1, props: { choice: 'agent' } })?.props.choice).toBe('agent')
+    expect(parseClientEvent({ ...base, event: 'checkout_started', props: { kind: 'subscription', plan: 'indie', interval: 'month' } })?.props.plan).toBe('indie')
     for (const bad of [
       { ...base, event: 'page_view' },
       { ...base, event: 'purchase', props: { value_minor: 100 } },

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { BILLING_PLANS, type BillingPlanDefinition } from '@/lib/billing/catalog'
+import { BILLING_PLANS, offeredBillingPlans, type BillingPlanDefinition } from '@/lib/billing/catalog'
 
 /**
  * Site-wide SEO facts. Everything here must match what the pages show.
@@ -104,9 +104,12 @@ export function websiteJsonLd() {
   }
 }
 
-/** Public plans with a published price, in display order. */
+/**
+ * Public plans with a published price, cheapest first. Indie appears only when the deployment offers it
+ * (NEXT_PUBLIC_BILLING_INDIE_ENABLED), so "from $X" copy and JSON-LD offers never advertise an unsellable plan.
+ */
 export function pricedPublicPlans(): BillingPlanDefinition[] {
-  return (['starter', 'pro', 'business'] as const)
+  return offeredBillingPlans()
     .map(id => BILLING_PLANS[id])
     .filter(plan => plan.public && plan.monthlyPriceUsd !== null)
 }

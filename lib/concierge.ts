@@ -10,7 +10,7 @@ export const conciergeLeadSchema = z.object({
   appCount: z.enum(['1-3', '4-10', '11-50', '50+']),
   launchTiming: z.enum(['this_month', 'next_90_days', 'exploring']),
   customerType: z.enum(['indie_developer', 'app_studio', 'enterprise', 'agency', 'other']),
-  preferredPlan: z.enum(['starter', 'pro', 'business', 'enterprise', 'unsure']),
+  preferredPlan: z.enum(['indie', 'starter', 'pro', 'business', 'enterprise', 'unsure']),
   preferredAgent: z.enum(['codex', 'claude', 'cursor', 'other', 'none']),
   biggestStoreProblem: z.string().trim().min(10).max(1000),
   source: z.string().trim().max(100).optional().default('direct'),
@@ -71,6 +71,7 @@ export function qualifyConciergeLead(input: ConciergeLeadInput): QualificationRe
   const reasons: string[] = []
 
   const planPoints = {
+    indie: 0,
     starter: 0,
     pro: 3,
     business: 4,

@@ -9,7 +9,7 @@ const base = (): BillingPanelProps => ({
   refreshing: false, error: null, checkoutEnabled: true,
   onPlan: vi.fn(), onInterval: vi.fn(), onCheckout: vi.fn(), onManage: vi.fn(), onRefresh: vi.fn(),
 })
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllEnvs() })
 
 describe('billing action boundaries', () => {
   it.each(['active', 'trialing', 'past_due', 'unresolved'])('offers existing %s members management, never a second checkout', status => {
@@ -89,3 +89,29 @@ describe('billing action boundaries', () => {
     expect(progress.getAttribute('aria-valuetext')).toContain('12 of 10, including 4 reserved')
   })
 })
+
+describe('billing page plans: Indie', () => {
+  it('shows three self-serve plans while Indie is not offered', () => {
+    render(<BillingPanel {...base()} />)
+    expect(screen.queryByRole('radio', { name: /Indie/ })).toBeNull()
+    expect(screen.getByRole('radio', { name: /Solo/ })).toBeTruthy()
+  })
+  it('sells Indie with its yearly total when offered', () => {
+    vi.stubEnv('NEXT_PUBLIC_BILLING_INDIE_ENABLED', 'true')
+    const props = base()
+    render(<BillingPanel {...props} selectedPlan="indie" interval="annual" />)
+    const indie = screen.getByRole('radio', { name: /Indie/ }) as HTMLInputElement
+    expect(indie.checked).toBe(true)
+    expect(screen.getByText(/\$490\.00 USD per year/)).toBeTruthy()
+    expect(screen.getByRole('button', { name: /Continue to secure checkout/ })).toBeTruthy()
+  })
+  it('keeps an Indie subscriber\'s current plan visible even if Indie is later hidden', () => {
+    const props = base()
+    props.subscription = { ...props.subscription, plan: 'indie', status: 'trialing', trialEndsAt: '2026-10-19T12:00:00.000Z', billingInterval: 'monthly', hasExistingSubscription: true, subscriptionId: 'sub_indie0000001' }
+    render(<BillingPanel {...props} selectedPlan="indie" />)
+    expect(screen.getByRole('radio', { name: /Indie/ })).toBeTruthy()
+    expect(screen.getByText('Your current plan')).toBeTruthy()
+    expect(screen.getByText(/Your card will be charged \$49\.00 per month/)).toBeTruthy()
+  })
+})
+

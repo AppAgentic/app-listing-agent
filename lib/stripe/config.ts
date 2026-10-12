@@ -1,4 +1,4 @@
-import type { BillingInterval, PublicBillingPlan } from '@/lib/billing/catalog'
+import { isIndiePlanEnabled, isOfferedBillingPlan, type BillingInterval, type PublicBillingPlan } from '@/lib/billing/catalog'
 import { STRIPE_CATALOG } from './catalog'
 import { stripeId } from './ids'
 
@@ -37,7 +37,12 @@ export function expectedStripeBinding(env: Record<string, string | undefined> = 
   return { livemode, accountId }
 }
 
-/** Fails closed: any missing or inconsistent value disables Stripe billing entirely. */
+/**
+ * Fails closed: any missing or inconsistent value disables Stripe billing entirely. The one exception is an
+ * optional plan (OPTIONAL_BILLING_PLANS, i.e. Indie) whose price ids are missing or still `*_PENDING`: that plan
+ * is left out of `prices` (unavailable for checkout) and the rest of billing keeps working. An optional plan is
+ * bound only when both of its intervals have valid ids. Duplicate price ids always fail closed.
+ */
 export function stripeBillingConfig(env: Record<string, string | undefined> = process.env): StripeBillingConfig | null {
   const binding = expectedStripeBinding(env)
   if (!binding) return null
@@ -50,13 +55,19 @@ export function stripeBillingConfig(env: Record<string, string | undefined> = pr
   const portalConfigurationId = stripeId(env.STRIPE_PORTAL_CONFIGURATION_ID, 'bpc')
   if (!portalConfigurationId) return null
 
-  const prices: StripePriceBinding[] = []
+  const bound: StripePriceBinding[] = []
+  const incompleteOptional = new Set<PublicBillingPlan>()
   for (const entry of STRIPE_CATALOG) {
     const priceId = stripeId(env[entry.priceEnv], 'price')
-    if (!priceId) return null
-    prices.push({ plan: entry.plan, interval: entry.interval, priceId })
+    if (!priceId) {
+      if (!entry.optional) return null
+      incompleteOptional.add(entry.plan)
+      continue
+    }
+    bound.push({ plan: entry.plan, interval: entry.interval, priceId })
   }
-  if (new Set(prices.map(price => price.priceId)).size !== prices.length) return null
+  if (new Set(bound.map(price => price.priceId)).size !== bound.length) return null
+  const prices = bound.filter(price => !incompleteOptional.has(price.plan))
 
   const trialDays = env.BILLING_TRIAL_DAYS === undefined ? 7 : Number(env.BILLING_TRIAL_DAYS)
   if (!Number.isInteger(trialDays) || trialDays < 0 || trialDays > 30) return null
@@ -76,6 +87,25 @@ export function priceIdFor(config: StripeBillingConfig, plan: PublicBillingPlan,
   const binding = config.prices.find(price => price.plan === plan && price.interval === interval)
   if (!binding) throw new Error(`Stripe price for ${plan}:${interval} is not configured`)
   return binding.priceId
+}
+
+/** Whether checkout can sell this plan: both of its prices are configured in this deployment. */
+export function hasPlanPrices(config: Pick<StripeBillingConfig, 'prices'>, plan: PublicBillingPlan): boolean {
+  return config.prices.some(price => price.plan === plan && price.interval === 'monthly') &&
+    config.prices.some(price => price.plan === plan && price.interval === 'annual')
+}
+
+/**
+ * Whether this deployment sells `plan` right now: it is offered (Indie also needs NEXT_PUBLIC_BILLING_INDIE_ENABLED)
+ * and both of its prices are configured. Entitlements never depend on this: an existing subscription keeps mapping
+ * through planForPrice as long as its price id is configured.
+ */
+export function isPlanPurchasable(
+  config: Pick<StripeBillingConfig, 'prices'>,
+  plan: PublicBillingPlan,
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return isOfferedBillingPlan(plan, isIndiePlanEnabled(env)) && hasPlanPrices(config, plan)
 }
 
 export function planForPrice(config: Pick<StripeBillingConfig, 'prices'>, priceId: unknown): StripePriceBinding | null {

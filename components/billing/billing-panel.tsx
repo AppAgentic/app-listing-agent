@@ -11,7 +11,10 @@ import {
 } from 'lucide-react'
 import {
   BILLING_PLANS,
+  PUBLIC_BILLING_PLANS,
   TRIAL_PERIOD_DAYS,
+  isPublicBillingPlan,
+  offeredBillingPlans,
   type BillingInterval,
   type PublicBillingPlan,
   type UserPlan,
@@ -24,8 +27,16 @@ import type {
 } from './types'
 
 export type SelectablePlan = Exclude<UserPlan, 'free'>
-const publicPlans: PublicBillingPlan[] = ['starter', 'pro', 'business']
+/**
+ * Self-serve plans shown on the billing page: the ones this deployment offers (Indie only once its Stripe prices are
+ * live), plus the workspace's current plan if it is no longer offered so it still reads as "Your current plan".
+ */
+function visiblePlans(currentPlan: UserPlan): PublicBillingPlan[] {
+  const offered = offeredBillingPlans()
+  return PUBLIC_BILLING_PLANS.filter(plan => offered.includes(plan) || plan === currentPlan)
+}
 const planDescriptions: Record<SelectablePlan, string> = {
+  indie: 'For your first app.',
   starter: 'For an independent app builder.',
   pro: 'For growing apps and automated workflows.',
   business: 'For a team managing an app portfolio.',
@@ -96,7 +107,7 @@ export function BillingPanel(props: BillingPanelProps) {
     interval === 'annual' ? selected.annualPriceUsd : selected.monthlyPriceUsd
   const date = formatDate(sub.renewsAt)
   const currentPrice =
-    sub.plan === 'starter' || sub.plan === 'pro' || sub.plan === 'business'
+    isPublicBillingPlan(sub.plan)
       ? sub.billingInterval === 'annual'
         ? `${money(current.annualPriceUsd!)} per year`
         : `${money(current.monthlyPriceUsd!)} per month`
@@ -118,6 +129,7 @@ export function BillingPanel(props: BillingPanelProps) {
         : props.reason === 'usage'
           ? 'Choose more room for the work you’re doing. Your existing projects stay with you.'
           : null
+  const planCards = visiblePlans(sub.plan)
   const manageLabel = requiresRecovery
     ? 'Update payment method'
     : 'Manage subscription'
@@ -329,8 +341,8 @@ export function BillingPanel(props: BillingPanelProps) {
 
         <fieldset>
           <legend className="sr-only">Available plans</legend>
-          <div className="grid gap-3 md:grid-cols-3">
-            {publicPlans.map((id) => {
+          <div className={`grid gap-3 ${planCards.length > 3 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3'}`}>
+            {planCards.map((id) => {
               const plan = BILLING_PLANS[id]
               const price =
                 interval === 'annual'

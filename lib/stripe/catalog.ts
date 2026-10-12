@@ -1,6 +1,7 @@
 import {
   BILLING_INTERVALS,
   BILLING_PLANS,
+  OPTIONAL_BILLING_PLANS,
   PUBLIC_BILLING_PLANS,
   type BillingInterval,
   type PublicBillingPlan,
@@ -10,6 +11,10 @@ import {
  * The Stripe catalog in code, like SeedViral. Amounts come from BILLING_PLANS (USD, tax exclusive).
  * The provisioning script creates exactly these products/prices; the runtime maps price ids from
  * configuration back to a plan and never trusts checkout metadata for the plan.
+ *
+ * Adding a plan is additive: it keeps this catalog version, gets its own product and `asc_<plan>_<interval>_usd_v1`
+ * lookup keys, and leaves every existing live price untouched (Indie, 2026-10-12). Bump the version only when an
+ * existing price changes, because Stripe prices are immutable and a new version means new price ids for every plan.
  */
 export const STRIPE_CATALOG_VERSION = 'asc-stripe-2026-09-v1'
 /** Software as a service, business use. Eligible for Managed Payments. */
@@ -25,6 +30,8 @@ export interface StripeCatalogEntry {
   currency: 'usd'
   recurringInterval: 'month' | 'year'
   priceEnv: string
+  /** True for plans added after launch (OPTIONAL_BILLING_PLANS): missing price ids make only this plan unavailable. */
+  optional: boolean
 }
 
 export const STRIPE_CATALOG: readonly StripeCatalogEntry[] = PUBLIC_BILLING_PLANS.flatMap(plan =>
@@ -42,6 +49,7 @@ export const STRIPE_CATALOG: readonly StripeCatalogEntry[] = PUBLIC_BILLING_PLAN
       currency: 'usd' as const,
       recurringInterval: interval === 'monthly' ? 'month' as const : 'year' as const,
       priceEnv: `STRIPE_PRICE_${plan.toUpperCase()}_${interval.toUpperCase()}`,
+      optional: OPTIONAL_BILLING_PLANS.includes(plan),
     }
   })
 )

@@ -5,13 +5,42 @@
  * code without pulling provider SDKs into the browser bundle.
  */
 
-export type UserPlan = 'free' | 'starter' | 'pro' | 'business' | 'enterprise'
+export type UserPlan = 'free' | 'indie' | 'starter' | 'pro' | 'business' | 'enterprise'
 
-/** Plans customers can buy self-serve. Enterprise is arranged with the team. */
-export type PublicBillingPlan = 'starter' | 'pro' | 'business'
+/** Plans customers can buy self-serve, cheapest first. Enterprise is arranged with the team. */
+export type PublicBillingPlan = 'indie' | 'starter' | 'pro' | 'business'
 export type BillingInterval = 'monthly' | 'annual'
-export const PUBLIC_BILLING_PLANS: readonly PublicBillingPlan[] = ['starter', 'pro', 'business']
+export const PUBLIC_BILLING_PLANS: readonly PublicBillingPlan[] = ['indie', 'starter', 'pro', 'business']
 export const BILLING_INTERVALS: readonly BillingInterval[] = ['monthly', 'annual']
+
+/** Every plan from no access to the largest, used for upgrade suggestions and plan comparisons. */
+export const PLAN_ORDER: readonly UserPlan[] = ['free', 'indie', 'starter', 'pro', 'business', 'enterprise']
+
+/**
+ * Plans added after launch whose Stripe prices may not be provisioned in a deployment yet (Indie, added 2026-10-12).
+ * Missing price ids for these never fail the Stripe config closed: the plan is simply unavailable
+ * (hidden on pricing/onboarding/billing, checkout refuses it) while every other plan keeps working.
+ */
+export const OPTIONAL_BILLING_PLANS: readonly PublicBillingPlan[] = ['indie']
+
+/**
+ * Indie is shown only when NEXT_PUBLIC_BILLING_INDIE_ENABLED=true (inlined into the browser bundle at build time).
+ * Turn it on only after STRIPE_PRICE_INDIE_MONTHLY/ANNUAL are set; checkout also requires those price ids.
+ * The literal `process.env.NEXT_PUBLIC_…` access is required for Next.js to inline it on the client.
+ */
+export function isIndiePlanEnabled(env?: Record<string, string | undefined>): boolean {
+  const value = env ? env.NEXT_PUBLIC_BILLING_INDIE_ENABLED : process.env.NEXT_PUBLIC_BILLING_INDIE_ENABLED
+  return value === 'true'
+}
+
+/** Self-serve plans this deployment offers, cheapest first. */
+export function offeredBillingPlans(indieEnabled: boolean = isIndiePlanEnabled()): PublicBillingPlan[] {
+  return PUBLIC_BILLING_PLANS.filter(plan => plan !== 'indie' || indieEnabled)
+}
+
+export function isOfferedBillingPlan(value: unknown, indieEnabled: boolean = isIndiePlanEnabled()): value is PublicBillingPlan {
+  return isPublicBillingPlan(value) && offeredBillingPlans(indieEnabled).includes(value)
+}
 
 /**
  * Free trial on a customer's first subscription (product decision: trials, never a free plan).
@@ -67,6 +96,21 @@ export const BILLING_PLANS: Record<UserPlan, BillingPlanDefinition> = {
       icons: 0,
       publishing: 0,
       apps: 0,
+      teamMembers: 1,
+    },
+  },
+  indie: {
+    id: 'indie',
+    name: 'Indie',
+    monthlyPriceUsd: 49,
+    annualPriceUsd: 490,
+    public: true,
+    limits: {
+      translations: 50,
+      screenshots: 10,
+      icons: 3,
+      publishing: -1,
+      apps: 1,
       teamMembers: 1,
     },
   },
@@ -157,6 +201,7 @@ export const PLAN_LIMITS: Record<UserPlan, PlanLimits> = Object.fromEntries(
  */
 export const OVERAGE_RATES: Record<UserPlan, null> = {
   free: null,
+  indie: null,
   starter: null,
   pro: null,
   business: null,

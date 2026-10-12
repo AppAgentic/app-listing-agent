@@ -6,17 +6,20 @@ import { getBillingAccount, hasExistingSubscription } from '@/lib/billing/accoun
 import { CheckoutConflict, prepareSubscriptionCheckout } from '@/lib/billing/checkout'
 import { recordConciergeEventForUser } from '@/lib/concierge-server'
 import { sanitizeMarketingAttribution } from '@/lib/marketing/attribution'
-import { isBillingCheckoutEnabled } from '@/lib/stripe/config'
+import { BILLING_PLANS, offeredBillingPlans, type PublicBillingPlan } from '@/lib/billing/catalog'
+import { isBillingCheckoutEnabled, isPlanPurchasable } from '@/lib/stripe/config'
 import { getStripeRuntime, publicAppOrigin } from '@/lib/stripe/runtime'
 import { isSelfHosted } from '@/lib/selfhost/config'
 import { selfHostedBillingDisabledResponse } from '@/lib/selfhost/responses'
 
 const requestSchema = z.object({
-  plan: z.enum(['starter', 'pro', 'business']),
+  plan: z.enum(['indie', 'starter', 'pro', 'business']) satisfies z.ZodType<PublicBillingPlan>,
   interval: z.enum(['monthly', 'annual']).default('monthly'),
   attribution: z.unknown().optional(),
   placement: z.enum(['billing', 'onboarding']).optional(),
 })
+
+const orList = (items: string[]) => items.length > 1 ? `${items.slice(0, -1).join(', ')} or ${items[items.length - 1]}` : items.join('')
 
 export async function POST(request: NextRequest) {
   if (isSelfHosted()) return selfHostedBillingDisabledResponse()
@@ -44,6 +47,17 @@ export async function POST(request: NextRequest) {
   const parsed = requestSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid checkout request' }, { status: 400 })
+  }
+  // A plan added after launch (Indie) is sellable only once its Stripe prices exist and it is switched on.
+  if (!isPlanPurchasable(runtime.config, parsed.data.plan)) {
+    const available = offeredBillingPlans().filter(plan => isPlanPurchasable(runtime.config, plan)).map(plan => BILLING_PLANS[plan].name)
+    return NextResponse.json(
+      {
+        error: `The ${BILLING_PLANS[parsed.data.plan].name} plan is not available yet.${available.length ? ` Choose ${orList(available)}.` : ''}`,
+        code: 'plan_unavailable',
+      },
+      { status: 409 }
+    )
   }
 
   try {
