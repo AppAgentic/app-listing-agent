@@ -6,7 +6,7 @@ const reason = (fn: () => unknown) => {
   return 'none'
 }
 
-describe('Stripe webhook signatures (ported from SeedViral)', () => {
+describe('Stripe webhook signatures', () => {
   const body = Buffer.from('{"id":"evt_test","type":"invoice.paid"}')
   const header = signStripePayload(body, 'whsec_a', 1_000_000)
 

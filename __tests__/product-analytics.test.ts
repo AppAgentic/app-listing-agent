@@ -44,7 +44,7 @@ import { recordCoreAction } from '@/lib/analytics/runtime'
 const origin = 'https://applistingagent.com'
 const env = {
   APPSTORECOPILOT_PRODUCT_ANALYTICS_ENABLED: 'true',
-  APPSTORECOPILOT_ANALYTICS_DATASET: 'appstorecopilot_analytics',
+  APPSTORECOPILOT_ANALYTICS_DATASET: 'example_analytics',
   APPSTORECOPILOT_ANALYTICS_TABLE: 'events',
   GCP_PROJECT_ID: 'appstorecopilot',
   NEXT_PUBLIC_APP_URL: origin,
@@ -400,7 +400,7 @@ describe('account deletion', () => {
       if (buffered) throw new StreamingBufferError()
       return { rows: [], affectedRows: 12 }
     }
-    const config = { projectId: 'appstorecopilot', dataset: 'appstorecopilot_analytics', table: 'events' }
+    const config = { projectId: 'example-project', dataset: 'example_analytics', table: 'events' }
     const store = new MemoryAnalyticsDeletionStore()
     let now = 1_000_000
     await store.enqueue('user-delete', now)
@@ -413,7 +413,7 @@ describe('account deletion', () => {
     expect([...store.jobs.values()][0]).toMatchObject({ state: 'done', deletedRows: 12 })
     expect([...store.jobs.values()][0].uid).toBeUndefined()
     const deletion = statements.at(-1)!
-    expect(deletion.sql).toBe('DELETE FROM `appstorecopilot.appstorecopilot_analytics.events` WHERE user_id = @uid OR visitor_id IN UNNEST(@visitor_ids)')
+    expect(deletion.sql).toBe('DELETE FROM `example-project.example_analytics.events` WHERE user_id = @uid OR visitor_id IN UNNEST(@visitor_ids)')
     expect(deletion.params).toEqual([
       { name: 'uid', type: 'STRING', value: 'user-delete' },
       { name: 'visitor_ids', type: 'ARRAY<STRING>', values: [visitor] },

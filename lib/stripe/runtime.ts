@@ -12,7 +12,7 @@ export function getStripeRuntime(env: Record<string, string | undefined> = proce
   if (!cached || cached.key !== key) {
     cached = {
       key,
-      // A key's account never changes, so a proven match is remembered for 10 minutes (SeedViral: ~300ms per call saved).
+      // A key's account never changes, so a proven match is remembered for 10 minutes (saves ~300ms per call).
       client: new StripeRest(config.secretKey, { expectedAccountId: config.accountId, accountVerificationTtlMs: 10 * 60 * 1000 }),
     }
   }

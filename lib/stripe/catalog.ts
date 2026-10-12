@@ -8,7 +8,7 @@ import {
 } from '@/lib/billing/catalog'
 
 /**
- * The Stripe catalog in code, like SeedViral. Amounts come from BILLING_PLANS (USD, tax exclusive).
+ * The Stripe catalog in code. Amounts come from BILLING_PLANS (USD, tax exclusive).
  * The provisioning script creates exactly these products/prices; the runtime maps price ids from
  * configuration back to a plan and never trusts checkout metadata for the plan.
  *

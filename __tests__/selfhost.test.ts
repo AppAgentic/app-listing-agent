@@ -127,7 +127,7 @@ describe('billing routes on a self-hosted install', () => {
     const response = await route.POST(new Request('https://selfhost.example/api', { method: 'POST' }))
     expect(response.status).toBe(404)
     expect(await response.json()).toMatchObject({ code: 'billing_disabled_self_hosted' })
-  })
+  }, 30_000) // a cold import of a route module can exceed the 5 s default when the whole suite runs
 })
 
 describe('self-host guard: hosted Firebase project', () => {

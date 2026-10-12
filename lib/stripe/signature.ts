@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 
 /**
  * Stripe-Signature: `t=<unix>,v1=<hmac>,...`. The signed payload is `${t}.${rawBody}` (HMAC-SHA256).
- * Only v1 schemes count. Several secrets are accepted while a rolled secret expires (SeedViral pattern).
+ * Only v1 schemes count. Several secrets are accepted while a rolled secret expires.
  */
 export function signStripePayload(rawBody: Buffer | string, secret: string, timestampSeconds: number): string {
   const body = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody, 'utf8')

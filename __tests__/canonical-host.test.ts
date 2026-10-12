@@ -18,7 +18,7 @@ describe('canonical host redirect', () => {
 
   it('leaves the canonical and hosted.app hosts alone', () => {
     expect(canonicalRedirectUrl(url('https://applistingagent.com/'), null, 'applistingagent.com')).toBeNull()
-    expect(canonicalRedirectUrl(url('https://x.hosted.app/'), 'appstorecopilot--appstorecopilot.us-east4.hosted.app', null)).toBeNull()
+    expect(canonicalRedirectUrl(url('https://x.hosted.app/'), 'example-backend--example-project.us-central1.hosted.app', null)).toBeNull()
     expect(canonicalRedirectUrl(url('http://localhost:3000/'), null, 'localhost:3000')).toBeNull()
   })
 })

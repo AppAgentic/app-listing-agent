@@ -16,7 +16,7 @@ vi.mock('@google-cloud/kms', () => ({
 
 const HEX_KEY = crypto.randomBytes(32).toString('hex')
 const B64_KEY = crypto.randomBytes(32).toString('base64')
-const KMS_NAME = 'projects/test-proj/locations/global/keyRings/appstorecopilot/cryptoKeys/credentials-key'
+const KMS_NAME = 'projects/test-proj/locations/global/keyRings/example-keyring/cryptoKeys/credentials-key'
 
 async function loadModule() {
   vi.resetModules()
@@ -172,6 +172,7 @@ describe('local-key credential backend', () => {
 
     vi.stubEnv('CREDENTIALS_ENCRYPTION_KEY', '')
     vi.stubEnv('GCP_PROJECT_ID', 'test-proj')
+    vi.stubEnv('GCP_KMS_KEYRING', 'example-keyring')
     const mod2 = await loadModule()
     await expect(mod2.decryptCredential(enc.encryptedData, enc.encryptedDek)).rejects.toThrow(
       /CREDENTIALS_ENCRYPTION_KEY is not set/
@@ -197,6 +198,7 @@ describe('KMS backend (production) is unchanged', () => {
   for (const withLocalKey of [false, true]) {
     it(`uses Cloud KMS when GCP_PROJECT_ID is set${withLocalKey ? ' even with CREDENTIALS_ENCRYPTION_KEY' : ''}`, async () => {
       vi.stubEnv('GCP_PROJECT_ID', 'test-proj')
+      vi.stubEnv('GCP_KMS_KEYRING', 'example-keyring')
       if (withLocalKey) vi.stubEnv('CREDENTIALS_ENCRYPTION_KEY', B64_KEY)
       installKmsMocks()
       const mod = await loadModule()

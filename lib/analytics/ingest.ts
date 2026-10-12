@@ -4,7 +4,7 @@ import { anonymousDailyCap, crawlerName, type AnonymousDailyCap, type BotDropCou
 
 /**
  * First-party product analytics (event standard v1): one row per event in BigQuery
- * `appstorecopilot.appstorecopilot_analytics.events`. No IP, user agent, email, URL or free text is
+ * the configured BigQuery events table (`APPSTORECOPILOT_ANALYTICS_DATASET` / `_TABLE`). No IP, user agent, email, URL or free text is
  * ever stored, and request payloads are never logged.
  */
 export interface AnalyticsRow {

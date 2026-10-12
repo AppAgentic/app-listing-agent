@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { STRIPE_API_VERSION, stripeId } from './ids'
 
 /**
- * Direct Stripe REST transport (no SDK), following SeedViral's `stripe-rest.ts`:
+ * Direct Stripe REST transport (no SDK):
  * pinned API version, form-encoded bodies, an Idempotency-Key on every create, no redirects,
  * bounded responses, no logging of bodies or headers, and the key's account proven against the
  * expected account before any other call. `fetch` is injectable so tests never reach the network.

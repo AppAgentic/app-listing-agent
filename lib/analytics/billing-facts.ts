@@ -10,7 +10,7 @@ import {
 
 /**
  * Server-side billing facts derived from verified, successfully processed Stripe webhook events
- * (SeedViral mapping). Keys are business identities (invoice, subscription + cancel time, charge +
+ * (standard mapping). Keys are business identities (invoice, subscription + cancel time, charge +
  * refunded amount), not webhook event ids, so replays, retries and sibling events emit at most once.
  * No email, card or Stripe customer data is recorded.
  */

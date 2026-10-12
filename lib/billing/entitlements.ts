@@ -33,7 +33,7 @@ function toDate(value: Timestamp | Date | string | null | undefined): Date | nul
  * Paid access comes only from a Stripe subscription recorded by the verified webhook, for the Stripe
  * account and mode this deployment is bound to. A sandbox record in the production database, a record
  * from another Stripe account, or any legacy provider record never grants access. Trialing counts as
- * active, and past_due keeps access while Stripe retries the payment (SeedViral grace behaviour).
+ * active, and past_due keeps access while Stripe retries the payment (grace period).
  */
 export function isVerifiedPaidEntitlement(
   billing: BillingEntitlement | undefined,

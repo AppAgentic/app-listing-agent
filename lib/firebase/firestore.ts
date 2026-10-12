@@ -24,7 +24,7 @@ import {
 } from '../billing/catalog'
 
 /**
- * `past_due` keeps access while Stripe retries the renewal (SeedViral grace behaviour); `incomplete` (first
+ * `past_due` keeps access while Stripe retries the renewal (grace while Stripe retries); `incomplete` (first
  * payment never completed, or Stripe marked the subscription unpaid) has no access but can be recovered.
  */
 export type BillingStatus = 'free' | 'trialing' | 'active' | 'past_due' | 'incomplete' | 'cancelled'

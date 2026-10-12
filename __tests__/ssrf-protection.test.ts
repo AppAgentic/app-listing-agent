@@ -11,7 +11,7 @@ const ALLOWED_IMAGE_DOMAINS = [
   'play-lh.googleusercontent.com',
   'firebasestorage.googleapis.com',
   'storage.googleapis.com',
-  'appstorecopilot-screenshots.r2.cloudflarestorage.com',
+  'example-bucket.r2.cloudflarestorage.com',
 ]
 
 function isAllowedImageUrl(url: string): boolean {
@@ -45,7 +45,7 @@ describe('SSRF Protection', () => {
     })
 
     it('should allow R2 Storage URLs', () => {
-      expect(isAllowedImageUrl('https://appstorecopilot-screenshots.r2.cloudflarestorage.com/image.png')).toBe(true)
+      expect(isAllowedImageUrl('https://example-bucket.r2.cloudflarestorage.com/image.png')).toBe(true)
     })
 
     it('should block arbitrary URLs (SSRF protection)', () => {

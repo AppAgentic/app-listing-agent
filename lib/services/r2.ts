@@ -22,7 +22,7 @@ const r2Client = new S3Client({
   },
 })
 
-const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'appstorecopilot-screenshots'
+const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'app-listing-agent'
 const PUBLIC_URL = process.env.R2_PUBLIC_URL
 
 export type ImageCategory = 'raw' | 'reference' | 'generated' | 'final' | 'icons' | 'icon-styles' | 'screenshot-styles' | 'temp-edit' | 'temp' | 'headline-analysis' | 'raw-wizard' | 'iap-media' | 'cpp-screenshots' | 'csl-screenshots' | 'csl-icons' | 'csl-feature-graphics'

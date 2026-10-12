@@ -11,7 +11,7 @@ import type { StripeCharge, StripeRest, StripeSubscription } from './rest'
 import { verifyStripeSignature, WebhookSignatureError } from './signature'
 
 /**
- * Stripe webhook processing, SeedViral style:
+ * Stripe webhook processing:
  * 1. intake: raw-body HMAC verification (current + previous secret, 300 s tolerance), livemode check,
  *    then a durable `stripeWebhookInbox/{eventId}` row (created once; duplicates are acknowledged).
  * 2. processEvent: lease the row, re-read the canonical Stripe object (the payload only names it),
