@@ -39,7 +39,6 @@ export function VslPlayer() {
           type="button"
           onClick={start}
           className="group absolute inset-0 flex items-center justify-center bg-black/10 transition-colors hover:bg-black/0"
-          aria-label="Play video with sound"
         >
           <span className="flex items-center gap-2.5 rounded-full bg-white px-4 py-2.5 text-[13px] sm:gap-3 sm:px-6 sm:py-3.5 sm:text-[15px] font-bold text-black shadow-[0_10px_40px_rgba(0,0,0,0.45)] transition-transform group-hover:scale-105 group-active:scale-95">
             <Play className="h-4 w-4 fill-black sm:h-5 sm:w-5" aria-hidden="true" />

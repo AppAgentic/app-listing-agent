@@ -6,6 +6,7 @@ import { hasPermission, canManageRole, getPermissionsForRole } from '@/lib/org/p
 import { createInvite } from '@/lib/org/invites'
 import { updateMember, removeMember } from '@/lib/org/members'
 import type { Role } from '@/lib/org/permissions'
+import { appUrl } from '@/lib/routing/app-url'
 
 // GET - List organization members
 export async function GET(request: NextRequest) {
@@ -181,7 +182,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       delivery: 'share_link',
-      inviteUrl: `${request.nextUrl.origin}/invite/${invite.token}`,
+      inviteUrl: appUrl(`/invite/${invite.token}`),
       invite: {
         id: invite.id,
         email: invite.email,

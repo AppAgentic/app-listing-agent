@@ -8,11 +8,7 @@ import {
   serializeAgentTask,
 } from '@/lib/mcp/agent-tasks'
 import { executeAgentTaskOperation } from '@/lib/mcp/server'
-
-function sameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin')
-  return origin === request.nextUrl.origin
-}
+import { isTrustedAppOrigin } from '@/lib/routing/request-origin'
 
 async function authenticatedTask(taskId: string) {
   const session = await getSession()
@@ -42,7 +38,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ taskId: string }> }
 ) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+  if (!isTrustedAppOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
   const { taskId } = await params
   const auth = await authenticatedTask(taskId)
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })
@@ -69,7 +65,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ taskId: string }> }
 ) {
-  if (!sameOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+  if (!isTrustedAppOrigin(request)) return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
   const { taskId } = await params
   const auth = await authenticatedTask(taskId)
   if ('error' in auth) return NextResponse.json({ error: auth.error }, { status: auth.status })

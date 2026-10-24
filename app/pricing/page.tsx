@@ -138,7 +138,12 @@ export default function PricingPage() {
           <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#f7f2df]/55">
             Monthly and annual prices in USD, before any applicable taxes. Allowances refresh monthly on every paid plan.
           </p>
-          <div className="mt-10 overflow-x-auto rounded-2xl border border-white/10">
+          <div
+            className="mt-10 overflow-x-auto rounded-2xl border border-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            role="region"
+            aria-label="Plan comparison table"
+            tabIndex={0}
+          >
             <table className="w-full min-w-[640px] text-left text-sm">
               <caption className="sr-only">App Listing Agent plans, prices and monthly allowances</caption>
               <thead className="bg-white/[0.03] text-xs uppercase tracking-[0.12em] text-[#f7f2df]/50">
