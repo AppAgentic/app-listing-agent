@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
@@ -52,7 +53,7 @@ async function getAuthContext(request: NextRequest): Promise<{ context: AccountC
 
 const createProjectSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  storeType: z.enum(['ios', 'android', 'web'], { required_error: 'Store type is required' }),
+  storeType: z.enum(['ios', 'android', 'web'], { error: 'Store type is required' }),
   appStoreAppId: z.string().nullable().optional(),
   playStorePackage: z.string().nullable().optional(),
   primaryLocale: z.string().default('en-US'),
@@ -114,12 +115,13 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = createProjectSchema.parse(await request.json())
+    body = createProjectSchema.parse(await readBoundedJson(request))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
       return validationErrorResponse(
-        error.errors[0]?.message || 'Invalid request body',
-        { errors: error.errors }
+        error.issues[0]?.message || 'Invalid request body',
+        { errors: error.issues }
       )
     }
     return validationErrorResponse('Invalid request body')

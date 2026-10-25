@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkSignupEligibility } from '@/lib/auth/signup-policy'
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
   if (rateLimit.response) return rateLimit.response
 
   try {
-    const body = requestSchema.parse(await request.json())
+    const body = requestSchema.parse(await readBoundedJson(request))
     const eligibility = await checkSignupEligibility(body)
 
     if (!eligibility.allowed) {
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ allowed: true })
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
       return NextResponse.json({ allowed: false, message: 'Enter a valid email address.' }, { status: 400 })
     }

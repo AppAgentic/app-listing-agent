@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import crypto from 'crypto'
 import { z } from 'zod'
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
 
   let body
   try {
-    body = requestSchema.parse(await request.json())
+    body = requestSchema.parse(await readBoundedJson(request))
   } catch {
     return errorResponse('Invalid request body')
   }

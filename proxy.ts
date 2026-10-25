@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { authenticateRequest } from '@/lib/api/auth'
 import { adminAuth } from '@/lib/firebase/admin'
 import { canonicalRedirectUrl } from '@/lib/routing/canonical-host'
+import { docsPathFromMarkdownPath, isPublicDocsPath, prefersMarkdown } from '@/lib/docs/public-pages'
 import {
   canApiKeyAccessApiPath,
   hasInternalIntegrationAccess,
@@ -59,6 +60,16 @@ export async function proxy(request: NextRequest) {
   if (canonical) return NextResponse.redirect(canonical, 308)
 
   const { pathname } = request.nextUrl
+
+  // Markdown twins of the public docs pages: `<page>.md`, or the page itself with `Accept: text/markdown`.
+  const markdownPath = docsPathFromMarkdownPath(pathname)
+    ?? (isPublicDocsPath(pathname) && prefersMarkdown(request.headers.get('accept')) ? pathname : null)
+  if (markdownPath) {
+    const url = request.nextUrl.clone()
+    url.pathname = `/docs-markdown${markdownPath.slice('/docs'.length)}`
+    return NextResponse.rewrite(url)
+  }
+
   const internalOnly = isInternalOnlyPath(pathname, request.method)
 
   // Enforce declared scopes for every REST request authenticated with a new

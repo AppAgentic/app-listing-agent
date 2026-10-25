@@ -57,11 +57,11 @@ describe('Play graphics shared authenticated operation', () => {
   })
   it('retains web authentication before the shared operation', async () => {
     mocks.auth.mockResolvedValue({ context: null, error: 'Authentication required' })
-    const request = { json: async () => ({ projectId: 'project-a', displayTypes: ['PLAY_PHONE'] }) } as NextRequest
-    expect((await POST(request)).status).toBe(401)
+    const request = () => new Request('https://applistingagent.com/api/screenshots/play-pull', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ projectId: 'project-a', displayTypes: ['PLAY_PHONE'] }) }) as NextRequest
+    expect((await POST(request())).status).toBe(401)
     expect(mocks.helper).not.toHaveBeenCalled()
     mocks.auth.mockResolvedValue({ context })
-    const response = await POST(request)
+    const response = await POST(request())
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ success: true, totalPulled: 1 })
   })

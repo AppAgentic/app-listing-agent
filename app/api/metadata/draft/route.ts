@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authenticateRequest, errorResponse, unauthorizedResponse } from '@/lib/api/auth'
@@ -40,8 +41,9 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = saveRequestSchema.parse(await request.json())
+    body = saveRequestSchema.parse(await readBoundedJson(request))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     return errorResponse('Invalid request body')
   }
 
@@ -153,8 +155,9 @@ export async function DELETE(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = deleteRequestSchema.parse(await request.json())
+    body = deleteRequestSchema.parse(await readBoundedJson(request))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     return errorResponse('Invalid request body')
   }
 

@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/session'
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   const session = await getSession()
   if (!session) return Response.json({ error: 'Authentication required' }, { status: 401 })
   if (!(await rateLimit(request, RATE_LIMITS.ai, { userId: session.userId })).success) return Response.json({ error: 'Rate limit exceeded' }, { status: 429 })
-  const parsed = schema.safeParse(await request.json().catch(() => null))
+  const parsed = schema.safeParse(await readBoundedJson(request, 64 * 1024).catch(() => null))
   if (!parsed.success) return Response.json({ error: 'Invalid concept request' }, { status: 400 })
   const { projectId, metadata, count, colors } = parsed.data
   const context = await getProjectContext(session.userId, projectId)

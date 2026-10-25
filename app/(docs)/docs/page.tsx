@@ -78,7 +78,7 @@ export default function DocsIntroPage() {
       <div className="not-prose mb-12">
         <div className="flex items-center gap-2 mb-4">
           <Rocket className="h-8 w-8 text-purple-400" />
-          <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-400">
+          <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-400" data-md-skip="">
             Ship Faster
           </span>
         </div>

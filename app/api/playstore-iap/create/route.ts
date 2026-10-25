@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Timestamp } from 'firebase-admin/firestore'
@@ -19,9 +20,10 @@ const createProductSchema = z.object({
 export async function POST(request: NextRequest) {
   let body
   try {
-    body = createProductSchema.parse(await request.json())
+    body = createProductSchema.parse(await readBoundedJson(request))
   } catch (error) {
-    if (error instanceof z.ZodError) return errorResponse(error.errors[0].message, 400)
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
+    if (error instanceof z.ZodError) return errorResponse(error.issues[0].message, 400)
     return errorResponse('Invalid request body', 400)
   }
 

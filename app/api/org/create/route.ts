@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession, generateApiKey } from '@/lib/auth/session'
@@ -40,7 +41,7 @@ export async function POST(request: NextRequest) {
   // Parse request body
   let body
   try {
-    body = createOrgSchema.parse(await request.json())
+    body = createOrgSchema.parse(await readBoundedJson(request))
   } catch {
     return NextResponse.json(
       { error: 'Invalid request body' },

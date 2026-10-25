@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authenticateRequest, errorResponse, unauthorizedResponse } from '@/lib/api/auth'
@@ -125,10 +126,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   // Parse request
   let body
   try {
-    body = updateProjectSchema.parse(await request.json())
+    body = updateProjectSchema.parse(await readBoundedJson(request))
   } catch (err) {
+    if (err instanceof RequestBodyLimitError) return Response.json({ error: err.message }, { status: 413 })
     if (err instanceof z.ZodError) {
-      return errorResponse(err.errors[0]?.message || 'Invalid request body')
+      return errorResponse(err.issues[0]?.message || 'Invalid request body')
     }
     return errorResponse('Invalid request body')
   }

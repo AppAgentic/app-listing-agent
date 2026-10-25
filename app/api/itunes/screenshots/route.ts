@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 
@@ -70,7 +71,7 @@ async function scrapeAppStoreScreenshots(appId: string): Promise<{ url: string; 
 export async function POST(request: NextRequest) {
   let body
   try {
-    body = requestSchema.parse(await request.json())
+    body = requestSchema.parse(await readBoundedJson(request))
   } catch {
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }

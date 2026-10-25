@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { configureAscMediaBackend } from '@/lib/services/asc-media-backend'
 import { z } from 'zod'
@@ -98,10 +99,11 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = pushRequestSchema.parse(await request.json())
+    body = pushRequestSchema.parse(await readBoundedJson(request))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`)
+      return errorResponse(`Validation error: ${error.issues.map(e => e.message).join(', ')}`)
     }
     return errorResponse('Invalid request body')
   }

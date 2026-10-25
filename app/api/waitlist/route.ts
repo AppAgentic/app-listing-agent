@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { adminDb } from '@/lib/firebase/admin'
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
   if (rateLimit.response) return rateLimit.response
 
   try {
-    const body = await request.json()
+    const body = await readBoundedJson(request, 64 * 1024)
     const data = waitlistSchema.parse(body)
     const email = data.email.trim().toLowerCase()
     const waitlistId = createHash('sha256').update(email).digest('hex')
@@ -59,9 +60,10 @@ export async function POST(request: NextRequest) {
       position: (await adminDb.collection('waitlist').count().get()).data().count
     })
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'validation_error', details: error.errors },
+        { error: 'validation_error', details: error.issues },
         { status: 400 }
       )
     }

@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { exchangeAgentPairing } from '@/lib/agent-onboarding'
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
 
   let input: z.infer<typeof exchangeSchema>
   try {
-    input = exchangeSchema.parse(await request.json())
+    input = exchangeSchema.parse(await readBoundedJson(request))
   } catch {
     return NextResponse.json({ error: 'A valid pairing code is required' }, { status: 400 })
   }

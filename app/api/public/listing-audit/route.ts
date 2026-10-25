@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Timestamp } from 'firebase-admin/firestore'
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
   let url: string
   try {
-    url = bodySchema.parse(await request.json()).url
+    url = bodySchema.parse(await readBoundedJson(request)).url
   } catch {
     return NextResponse.json({ error: 'invalid_request', message: 'Paste an App Store or Google Play link.' }, { status: 400 })
   }

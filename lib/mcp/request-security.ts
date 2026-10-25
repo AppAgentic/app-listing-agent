@@ -1,3 +1,4 @@
+import { readBoundedText, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import type { NextRequest } from 'next/server'
 import type { MCPRequest } from '@/lib/mcp/server'
 import type { RateLimitResult } from '@/lib/api/rate-limit'
@@ -77,9 +78,13 @@ export async function readBoundedMCPRequest(
     return { error: jsonRpcError(413, -32600, 'MCP request body is too large') }
   }
 
-  const raw = await request.text()
-  if (new TextEncoder().encode(raw).byteLength > MAX_MCP_REQUEST_BYTES) {
-    return { error: jsonRpcError(413, -32600, 'MCP request body is too large') }
+  let raw: string
+  try {
+    raw = await readBoundedText(request, MAX_MCP_REQUEST_BYTES)
+  } catch (error) {
+    return { error: error instanceof RequestBodyLimitError
+      ? jsonRpcError(413, -32600, 'MCP request body is too large')
+      : jsonRpcError(400, -32700, 'Parse error') }
   }
 
   let message: unknown

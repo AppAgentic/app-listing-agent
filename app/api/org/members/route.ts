@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getSession } from '@/lib/auth/session'
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
   // Parse request body
   let body
   try {
-    body = inviteSchema.parse(await request.json())
+    body = inviteSchema.parse(await readBoundedJson(request))
   } catch {
     return NextResponse.json(
       { error: 'Invalid request body' },
@@ -248,7 +249,7 @@ export async function PATCH(request: NextRequest) {
   // Parse request body
   let body
   try {
-    body = updateSchema.parse(await request.json())
+    body = updateSchema.parse(await readBoundedJson(request))
   } catch {
     return NextResponse.json(
       { error: 'Invalid request body' },

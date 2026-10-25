@@ -135,7 +135,7 @@ export default function MCPToolReferencePage() {
                                     : <span className="text-white/40">No</span>}
                                 </td>
                                 <td className="px-4 py-3 align-top">
-                                  {property.description}
+                                  {property.description}{' '}
                                   {values && values.length > 0 && (
                                     <span className="block mt-1 text-white/50">
                                       One of: {values.map(value => String(value)).join(', ')}

@@ -15,7 +15,7 @@ import {
 } from '@/lib/seo/site'
 import PricingPage, { metadata as pricingMetadata } from '@/app/pricing/page'
 import { metadata as renameMetadata } from '@/app/(public)/appstore-copilot/page'
-import { metadata as fastlaneMetadata } from '@/app/(public)/compare/fastlane/page'
+import { generateMetadata as fastlaneMetadataFactory } from '@/app/(public)/compare/fastlane/page'
 import { metadata as auditMetadata } from '@/app/(public)/audit/page'
 import { metadata as changelogMetadata } from '@/app/(public)/changelog/page'
 import { metadata as contactMetadata } from '@/app/(public)/contact/page'
@@ -43,7 +43,7 @@ function finalTitle(metadata: Metadata): string {
 const pages: Array<[string, Metadata]> = [
   ['/pricing', pricingMetadata],
   ['/appstore-copilot', renameMetadata],
-  ['/compare/fastlane', fastlaneMetadata],
+  ['/compare/fastlane', fastlaneMetadataFactory()],
   ['/audit', auditMetadata],
   ['/changelog', changelogMetadata],
   ['/contact', contactMetadata],

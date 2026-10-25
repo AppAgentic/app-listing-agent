@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import { withCurrentYear, updatedMonth } from '@/lib/seo/title-year'
+
 import Link from 'next/link'
 import { TrustPage, TrustSection } from '@/components/public/trust-page'
 import { serializeJsonLd } from '@/lib/seo/json-ld'
@@ -13,6 +15,9 @@ import {
   pricedPublicPlans,
 } from '@/lib/seo/site'
 
+// Resolve the year per request so January rollover needs no rebuild.
+export const dynamic = 'force-dynamic'
+
 // fastlane facts: only from fastlane's own docs and repository, each cited
 // below with the date checked. App Listing Agent facts: only features that
 // exist in this repo (lib/mcp/public-capabilities.ts, lib/billing/catalog.ts).
@@ -26,11 +31,13 @@ const startingPrice = formatUsd(pricedPublicPlans()[0]?.monthlyPriceUsd ?? 0)
 
 const ANSWER = 'fastlane is a free, open-source (MIT) command-line tool you run on your own Mac or CI server to automate iOS and Android builds, code signing, screenshots and store uploads. App Listing Agent is a paid, hosted service that your AI agent (ChatGPT, Claude, Codex or Cursor) uses to prepare store listings — metadata, translations, marketing screenshots, icons and custom store pages — and publish them after you approve. They overlap on uploading listing text and screenshots, and can be used side by side.'
 
-export const metadata: Metadata = pageMetadata({
-  absoluteTitle: 'App Listing Agent vs fastlane: an honest comparison',
-  description: 'fastlane is free, open source and automates builds and releases. App Listing Agent is a paid AI-agent service for store listings. Where each wins.',
-  path: '/compare/fastlane',
-})
+export function generateMetadata(): Metadata {
+  return pageMetadata({
+    absoluteTitle: withCurrentYear('App Listing Agent vs fastlane: an honest comparison'),
+    description: 'fastlane is free, open source and automates builds and releases. App Listing Agent is a paid AI-agent service for store listings. Where each wins.',
+    path: '/compare/fastlane',
+  })
+}
 
 const sources = [
   { label: 'fastlane docs: home, installation and system requirements', url: 'https://docs.fastlane.tools/' },
@@ -151,8 +158,12 @@ const link = 'text-purple-300 underline underline-offset-4 hover:text-white'
 
 export default function FastlaneComparisonPage() {
   return (
-    <TrustPage eyebrow={`Comparison · checked ${CHECKED_LABEL}`} title="App Listing Agent vs fastlane" description={ANSWER}>
+    <TrustPage eyebrow={`Comparison · checked ${CHECKED_LABEL}`} title={withCurrentYear('App Listing Agent vs fastlane')} description={ANSWER}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }} />
+
+      <p className="text-sm text-[#f7f2df]/60">
+        Updated <time dateTime={CHECKED}>{updatedMonth(CHECKED)}</time>
+      </p>
 
       <TrustSection title="The short version">
         <ul className="list-disc space-y-2 pl-5">

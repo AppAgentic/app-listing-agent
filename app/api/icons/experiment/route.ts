@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { randomUUID } from 'crypto'
@@ -31,10 +32,11 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = experimentSchema.parse(await request.json())
+    body = experimentSchema.parse(await readBoundedJson(request))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
-      return Response.json({ error: error.errors.map(e => e.message).join(', ') }, { status: 400 })
+      return Response.json({ error: error.issues.map(e => e.message).join(', ') }, { status: 400 })
     }
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }

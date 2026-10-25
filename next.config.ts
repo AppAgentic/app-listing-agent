@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 import { securityHeaders } from './lib/security/headers'
 import { REMOVED_DOCS_REDIRECTS } from './lib/docs/redirects'
+import { PUBLIC_DOCS_PATHS } from './lib/docs/public-paths'
 
 const allowedDevOrigins = process.env.NEXT_ALLOWED_DEV_ORIGINS
   ?.split(',')
@@ -21,6 +22,14 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      // Public docs pages: short-lived and revalidated against the ETag, so agents see edits at
+      // once. The same URLs serve markdown on `Accept: text/markdown` (proxy.ts); Next rewrites
+      // Vary on pages, so max-age=0 is what keeps shared caches from mixing the two. Internal-only
+      // docs keep Next's private default.
+      ...PUBLIC_DOCS_PATHS.map(source => ({
+        source,
+        headers: [{ key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' }],
+      })),
     ]
   },
 

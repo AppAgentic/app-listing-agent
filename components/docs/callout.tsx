@@ -51,11 +51,12 @@ export function Callout({ type = 'info', title, children }: CalloutProps) {
     <div
       className={`my-6 flex gap-3 rounded-xl border ${border} ${bg} p-4`}
       role="alert"
+      data-callout={type}
     >
       <Icon className={`h-5 w-5 flex-shrink-0 ${iconColor}`} />
       <div className="flex-1 space-y-1">
         {title && (
-          <p className={`font-medium ${iconColor}`}>{title}</p>
+          <p className={`font-medium ${iconColor}`} data-callout-title="">{title}</p>
         )}
         <div className="text-sm text-white/70 [&>p]:mb-2 last:[&>p]:mb-0">
           {children}

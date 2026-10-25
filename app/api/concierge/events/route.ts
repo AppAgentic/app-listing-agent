@@ -1,19 +1,10 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { adminDb } from '@/lib/firebase/admin'
 import { RATE_LIMIT_CONFIGS, withRateLimit } from '@/lib/api/rate-limit'
-import { conciergeEventNames } from '@/lib/concierge'
+import { eventSchema } from '@/lib/api/concierge-event-input'
 import { hashLeadTrackingToken, recordConciergeEvent } from '@/lib/concierge-server'
-
-const eventSchema = z.object({
-  name: z.enum(conciergeEventNames),
-  leadId: z.string().regex(/^[a-f0-9]{64}$/).optional(),
-  trackingToken: z.string().min(20).max(100).optional(),
-  sessionId: z.string().uuid().optional(),
-  source: z.string().trim().max(100).optional(),
-  metadata: z.record(z.union([z.string().max(200), z.number(), z.boolean(), z.null()])).optional(),
-})
 
 function hashesMatch(left: string, right: string): boolean {
   const leftBuffer = Buffer.from(left)
@@ -25,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (rateLimit.response) return rateLimit.response
 
   try {
-    const event = eventSchema.parse(await request.json())
+    const event = eventSchema.parse(await readBoundedJson(request, 64 * 1024))
     if (event.leadId) {
       if (!event.trackingToken) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
       const lead = await adminDb.collection('conciergeLeads').doc(event.leadId).get()
@@ -38,6 +29,7 @@ export async function POST(request: NextRequest) {
     await recordConciergeEvent(event)
     return NextResponse.json({ success: true })
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error && typeof error === 'object' && 'issues' in error) {
       return NextResponse.json({ error: 'validation_error' }, { status: 400 })
     }

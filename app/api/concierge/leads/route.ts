@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { Timestamp } from 'firebase-admin/firestore'
 import { adminDb } from '@/lib/firebase/admin'
@@ -26,7 +27,7 @@ export async function POST(request: NextRequest) {
   if (rateLimit.response) return rateLimit.response
 
   try {
-    const input = conciergeLeadSchema.parse(await request.json())
+    const input = conciergeLeadSchema.parse(await readBoundedJson(request, 64 * 1024))
     const email = normalizeLeadEmail(input.email)
     const id = conciergeLeadId(email)
     const leadRef = adminDb.collection('conciergeLeads').doc(id)
@@ -82,6 +83,7 @@ export async function POST(request: NextRequest) {
       bookingUrl: qualification.qualified ? configuredBookingUrl() : null,
     })
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error && typeof error === 'object' && 'issues' in error) {
       return NextResponse.json({ error: 'validation_error' }, { status: 400 })
     }

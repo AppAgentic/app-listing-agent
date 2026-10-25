@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { z } from 'zod'
@@ -23,7 +24,7 @@ export async function PATCH(request: NextRequest) {
   if (!operator) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   try {
-    const input = updateSchema.parse(await request.json())
+    const input = updateSchema.parse(await readBoundedJson(request))
     const leadRef = adminDb.collection('conciergeLeads').doc(input.leadId)
     const lead = await leadRef.get()
     if (!lead.exists) return NextResponse.json({ error: 'not_found' }, { status: 404 })
@@ -69,6 +70,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, status: input.status })
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error && typeof error === 'object' && 'issues' in error) {
       return NextResponse.json({ error: 'validation_error' }, { status: 400 })
     }

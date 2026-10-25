@@ -1,3 +1,4 @@
+import { readBoundedJson } from '@/lib/api/bounded-body'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Timestamp, type DocumentData, type DocumentReference } from 'firebase-admin/firestore'
@@ -24,7 +25,7 @@ export async function DELETE(request: NextRequest) {
 
   let body: z.infer<typeof deletionSchema>
   try {
-    body = deletionSchema.parse(await request.json())
+    body = deletionSchema.parse(await readBoundedJson(request))
   } catch {
     return NextResponse.json({ error: 'Type your account email to confirm deletion.' }, { status: 400 })
   }

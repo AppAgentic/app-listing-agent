@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import {
@@ -135,12 +136,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
   // Parse request body
   let body
   try {
-    body = createLinkSchema.parse(await request.json())
+    body = createLinkSchema.parse(await readBoundedJson(request))
   } catch (err) {
+    if (err instanceof RequestBodyLimitError) return Response.json({ error: err.message }, { status: 413 })
     if (err instanceof z.ZodError) {
       return validationErrorResponse(
-        err.errors[0]?.message || 'Invalid request body',
-        { errors: err.errors }
+        err.issues[0]?.message || 'Invalid request body',
+        { errors: err.issues }
       )
     }
     return validationErrorResponse('Invalid request body')
@@ -256,12 +258,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   // Parse request body
   let body
   try {
-    body = updateLinkSchema.parse(await request.json())
+    body = updateLinkSchema.parse(await readBoundedJson(request))
   } catch (err) {
+    if (err instanceof RequestBodyLimitError) return Response.json({ error: err.message }, { status: 413 })
     if (err instanceof z.ZodError) {
       return validationErrorResponse(
-        err.errors[0]?.message || 'Invalid request body',
-        { errors: err.errors }
+        err.issues[0]?.message || 'Invalid request body',
+        { errors: err.issues }
       )
     }
     return validationErrorResponse('Invalid request body')

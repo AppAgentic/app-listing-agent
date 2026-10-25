@@ -1,3 +1,5 @@
+import { startJobSchema } from '@/lib/api/translation-input'
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import crypto from 'crypto'
 import { z } from 'zod'
@@ -9,42 +11,6 @@ import { createTranslationJob, estimateJobDuration } from '@/lib/jobs/translatio
 import { createReservationErrorResponse, readUsage, refundUsage, reserveUsage } from '@/lib/api/usage'
 import type { ScreenshotSet } from '@/lib/firebase/firestore'
 import { AI_MODELS, getImageCreditWeight, type ImageProvider } from '@/lib/billing/catalog'
-
-const translationModeSchema = z.enum(['literal', 'marketing_short', 'transcreate', 'ui_full'])
-const translationProviderSchema = z.enum(['kie', 'fal', 'openai'])
-const textLengthPolicySchema = z.object({
-  headlineMaxChars: z.number().int().positive().max(200).optional(),
-  subtitleMaxChars: z.number().int().positive().max(300).optional(),
-  allowLineBreaks: z.boolean().optional(),
-  shrinkFontLimitPercent: z.number().int().min(0).max(50).optional(),
-}).optional()
-const perScreenshotInstructionSchema = z.union([
-  z.string().max(1000),
-  z.object({
-    headline: z.string().max(160).optional(),
-    subtitle: z.string().max(240).optional(),
-    instructions: z.string().max(1000).optional(),
-    headlineMaxChars: z.number().int().positive().max(200).optional(),
-    subtitleMaxChars: z.number().int().positive().max(300).optional(),
-  }),
-])
-
-const startJobSchema = z.object({
-  projectId: z.string(),
-  targetLocales: z.array(z.string()).min(1),
-  displayTypes: z.array(z.string()).optional(),
-  screenshotIds: z.array(z.string()).optional(), // Legacy: same screenshots for all locales
-  screenshotIdsByLocale: z.record(z.string(), z.array(z.string())).optional(), // New: per-locale filtering
-  translateInAppText: z.boolean().optional().default(false),
-  preserveInPhoneUI: z.boolean().optional(),
-  translateMarketingOnly: z.boolean().optional(),
-  translationInstructions: z.string().max(4000).optional(),
-  translationMode: translationModeSchema.optional(),
-  textLengthPolicy: textLengthPolicySchema,
-  provider: translationProviderSchema.optional(),
-  model: z.string().min(1).max(100).optional(),
-  perScreenshotInstructions: z.record(z.string(), perScreenshotInstructionSchema).optional(),
-})
 
 // Helper to get auth context
 async function getAuthContext(request: NextRequest): Promise<{ context: AccountContext | null; error?: string }> {
@@ -79,10 +45,11 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = startJobSchema.parse(await request.json())
+    body = startJobSchema.parse(await readBoundedJson(request, 1024 * 1024, 125_000))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`)
+      return errorResponse(`Validation error: ${error.issues.map(e => e.message).join(', ')}`)
     }
     return errorResponse('Invalid request body')
   }

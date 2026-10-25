@@ -80,7 +80,7 @@ export default function MCPOverviewPage() {
       <div className="not-prose mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Cpu className="h-6 w-6 text-purple-400" />
-          <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-400">
+          <span className="rounded-full bg-purple-500/20 px-3 py-1 text-sm text-purple-400" data-md-skip="">
             MCP Server
           </span>
         </div>

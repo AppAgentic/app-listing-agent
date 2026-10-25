@@ -26,11 +26,15 @@ export function CodeBlock({
   }
 
   return (
-    <div className="group relative rounded-xl border border-white/[0.08] bg-[#0d0d0d] overflow-hidden my-6">
+    <div
+      className="group relative rounded-xl border border-white/[0.08] bg-[#0d0d0d] overflow-hidden my-6"
+      data-code-block=""
+      data-code-title={title}
+    >
       {/* Header */}
       {title && (
         <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-2">
-          <span className="text-xs text-white/50">{title}</span>
+          <span className="text-xs text-white/50">{title}</span>{' '}
           <span className="rounded bg-white/[0.08] px-2 py-0.5 text-xs text-white/40">
             {language}
           </span>

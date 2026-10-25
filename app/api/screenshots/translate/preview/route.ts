@@ -1,3 +1,4 @@
+import { readBoundedJson, RequestBodyLimitError } from '@/lib/api/bounded-body'
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { authenticateRequest, errorResponse, unauthorizedResponse } from '@/lib/api/auth'
@@ -10,10 +11,10 @@ import type { ScreenshotSet } from '@/lib/firebase/firestore'
 
 const previewJobSchema = z.object({
   projectId: z.string(),
-  targetLocales: z.array(z.string()).min(1),
-  displayTypes: z.array(z.string()).optional(),
-  screenshotIds: z.array(z.string()).optional(),
-  screenshotIdsByLocale: z.record(z.string(), z.array(z.string())).optional(),
+  targetLocales: z.array(z.string().max(100)).min(1).max(200),
+  displayTypes: z.array(z.string().max(100)).max(32).optional(),
+  screenshotIds: z.array(z.string().max(200)).max(500).optional(),
+  screenshotIdsByLocale: z.record(z.string().max(100), z.array(z.string().max(200)).max(500)).refine(value => Object.keys(value).length <= 200, 'Too many locales').optional(),
   translateInAppText: z.boolean().optional(),
   preserveInPhoneUI: z.boolean().optional(),
   translateMarketingOnly: z.boolean().optional(),
@@ -62,10 +63,11 @@ export async function POST(request: NextRequest) {
   // Parse request
   let body
   try {
-    body = previewJobSchema.parse(await request.json())
+    body = previewJobSchema.parse(await readBoundedJson(request, 1024 * 1024, 125_000))
   } catch (error) {
+    if (error instanceof RequestBodyLimitError) return Response.json({ error: error.message }, { status: 413 })
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`)
+      return errorResponse(`Validation error: ${error.issues.map(e => e.message).join(', ')}`)
     }
     return errorResponse('Invalid request body')
   }

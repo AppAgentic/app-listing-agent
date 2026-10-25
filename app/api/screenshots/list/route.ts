@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return errorResponse(`Validation error: ${error.errors.map(e => e.message).join(', ')}`)
+      return errorResponse(`Validation error: ${error.issues.map(e => e.message).join(', ')}`)
     }
     return errorResponse('Invalid request parameters')
   }
