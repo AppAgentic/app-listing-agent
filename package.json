@@ -82,7 +82,7 @@
     "typescript": "^5",
     "vite": "^7.3.7",
     "vite-tsconfig-paths": "^6.0.3",
-    "vitest": "^4.0.16"
+    "vitest": "^4.1.12"
   },
   "overrides": {
     "@firebase/firestore": {
