@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { FazierBadge } from '@/components/public/fazier-badge'
 
 const footerLinks = {
   product: [
@@ -109,7 +110,7 @@ export function DocsFooter() {
               © {new Date().getFullYear()} App Agentic Ltd · App Listing Agent is operated by App Agentic Ltd
             </span>
           </div>
-
+          <FazierBadge />
         </div>
       </div>
     </footer>

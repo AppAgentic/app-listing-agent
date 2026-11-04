@@ -7,6 +7,7 @@ import Starfield from '@/components/Starfield'
 import PricingSection from '@/components/PricingSection'
 import { BookingLink, TrackedFunnelLink } from '@/components/concierge/booking-link'
 import { VslPlayer } from '@/components/landing/vsl-player'
+import { FazierBadge } from '@/components/public/fazier-badge'
 import { serializeJsonLd } from '@/lib/seo/json-ld'
 import { organizationJsonLd, softwareApplicationJsonLd, websiteJsonLd } from '@/lib/seo/site'
 
@@ -1440,6 +1441,7 @@ export default function HomePage() {
         </div>
         <div className="max-w-6xl mx-auto mt-20 pt-10 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
           <span className="text-neutral-600 text-[12px] font-brand">© {new Date().getFullYear()} App Agentic Ltd. App Listing Agent is operated by App Agentic Ltd.</span>
+          <FazierBadge />
         </div>
       </footer>
     </div>

@@ -32,7 +32,7 @@ export const buildContentSecurityPolicy = (
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline'${development ? " 'unsafe-eval'" : ''} https://www.clarity.ms https://*.clarity.ms`,
     "style-src 'self' 'unsafe-inline'",
-    `img-src 'self' data: blob: ${assets} https://*.r2.cloudflarestorage.com https://*.r2.dev https://is1-ssl.mzstatic.com https://is2-ssl.mzstatic.com https://is3-ssl.mzstatic.com https://is4-ssl.mzstatic.com https://is5-ssl.mzstatic.com https://play-lh.googleusercontent.com https://www.gstatic.com https://*.gleap.io https://*.clarity.ms https://c.bing.com`,
+    `img-src 'self' data: blob: ${assets} https://*.r2.cloudflarestorage.com https://*.r2.dev https://is1-ssl.mzstatic.com https://is2-ssl.mzstatic.com https://is3-ssl.mzstatic.com https://is4-ssl.mzstatic.com https://is5-ssl.mzstatic.com https://play-lh.googleusercontent.com https://www.gstatic.com https://*.gleap.io https://*.clarity.ms https://c.bing.com https://fazier.com`,
     "font-src 'self' data:",
     `media-src 'self' ${assets}`,
     "connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.gleap.io wss://*.gleap.io https://*.clarity.ms https://c.bing.com",

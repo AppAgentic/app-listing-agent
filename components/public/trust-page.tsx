@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
+import { FazierBadge } from './fazier-badge'
 
 /** Shared header for public trust, pricing and comparison pages. */
 export function PublicNav() {
@@ -29,6 +30,7 @@ export function PublicFooter() {
         <div className="flex flex-col gap-1">
           <span>© {new Date().getFullYear()} App Agentic Ltd</span>
           <span>App Listing Agent is operated by App Agentic Ltd</span>
+          <FazierBadge className="mt-3 inline-block w-fit" />
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/pricing" className="hover:text-white">Pricing</Link>

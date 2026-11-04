@@ -28,7 +28,7 @@ describe('security headers', () => {
     }))
     expect(directives.get('script-src')).toEqual(expect.arrayContaining(['https://www.clarity.ms', 'https://*.clarity.ms']))
     expect(directives.get('connect-src')).toEqual(expect.arrayContaining(['https://*.clarity.ms', 'https://c.bing.com']))
-    expect(directives.get('img-src')).toEqual(expect.arrayContaining(['https://*.clarity.ms', 'https://c.bing.com']))
+    expect(directives.get('img-src')).toEqual(expect.arrayContaining(['https://*.clarity.ms', 'https://c.bing.com', 'https://fazier.com']))
     expect(directives.get('frame-src')?.join(' ')).not.toContain('clarity')
   })
 
